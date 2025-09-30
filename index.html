@@ -11,6 +11,8 @@ body
 
 .table
 {
+	--color-grid:#444;
+
 	font-family: monospace;
 	display: grid;
 	grid-template-rows: repeat(11,1fr);
@@ -24,7 +26,7 @@ body
 		display: inline-block;
 		background-color: #333;
 		text-align: center;
-		outline: 1px solid #999;
+		outline: 1px solid var(--color-grid);
 	}
 
 	.cell,.head{
@@ -35,7 +37,6 @@ body
 	}
 
 	.cursor{
-		
 		border:1px solid #ffff00;
 	}
 
@@ -47,10 +48,10 @@ body
 	{
 		display: block;
 		background-color:#222;
-		color:#fff;
+		color:#ccc;
 		width:calc(100% - 1px);
 		height: 100%;
-		outline: 1px solid #999;
+		outline: 1px solid var(--color-grid);
 		margin-bottom: 1px;
 		border: none;
 		font-family: monospace;
@@ -83,6 +84,7 @@ class CellMate
 #selectionStartY=-1
 #selectionEndX=-1
 #selectionEndY=-1
+#colTitles=[]
 
 constructor()
 {
@@ -149,7 +151,6 @@ setCursor(x,y,e)
 	if(e&&e.shiftKey)this.setEndSelection(this.#cursorX,this.#cursorY);
 }
 
-
 startSelection(x,y)
 {
 	this.#selectionStartX=x
@@ -162,6 +163,7 @@ setEndSelection(x,y)
 	this.#selectionEndY=y
 	this.updateSelection();
 }
+
 unselectAll()
 {
 	let eles=this.#elTable.getElementsByClassName("selected")
@@ -173,10 +175,10 @@ unselectAll()
 	}
 
 	this.#selectionStartX=this.#selectionStartY=this.#selectionEndX=this.#selectionEndY=-1;
- }
-
-deleteSelectionContent(c)
+}
+forEachSelected(cb)
 {
+	
 	const sx=Math.min(this.#selectionStartX,this.#selectionEndX)
 	const sy=Math.min(this.#selectionStartY,this.#selectionEndY)
 	const ex=Math.max(this.#selectionStartX,this.#selectionEndX)
@@ -185,8 +187,17 @@ deleteSelectionContent(c)
 	for(let y=sy;y<=ey;y++)
 		for(let x=sx;x<=ex;x++)
 		{
-			document.getElementById(this.cellId(x,y)).value="0"
+			let v=this.#data[x+y*this.#width];
+			if(v==undefined)v="";
+			cb(x,y,v);
 		}
+}
+
+deleteSelectionContent(c)
+{
+	this.forEachSelected((x,y,v)=>{
+		document.getElementById(this.cellId(x,y)).value="0"
+	})
 }
 
 updateSelection()
@@ -230,6 +241,53 @@ moveCursorRight(e)
 {
 	this.setCursor(this.#cursorX+1,this.#cursorY,e)
 }
+setValue(x,y,v)
+{
+console.log(x,y)
+
+	const idx=x+this.#width* y;
+	while(idx>this.#data.length)
+	{
+		for(let i=0;i<this.#width;i++) this.#data.push("");
+	}
+	this.#data[idx]=v;
+	const inputEle=document.getElementById(this.cellId(x,y))
+	if(inputEle)inputEle.value=v;
+}
+
+fromTxt(txt,x,y)
+{
+	const separator="\t";
+	const rows=txt.split("\n");
+
+
+	for(let i=0;i<rows.length;i++)
+	{
+		const cols=rows[i].split(separator);
+
+		for(let j=0;j<cols.length;j++)
+			this.setValue(this.#cursorX+j,this.#cursorY+i,cols[j])
+
+	}
+
+
+}
+
+toTxt()
+{
+	const separator="\t";
+	let str="";
+	let yy=-1;
+	this.forEachSelected((x,y,v)=>
+	{
+		if(yy!=-1&&y>yy) str+="\n";
+
+		str=str+v+separator;
+		yy=y;
+	});
+
+	return str+"\n";
+}
 
 html()
 {
@@ -245,8 +303,14 @@ html()
 	{
 		const elColHead=document.createElement("div")
 		elColHead.classList.add("head")
+		elColHead.dataset.idx=x;
 		elRow.appendChild(elColHead)
 		if(x) elColHead.innerHTML=x;
+		elColHead.addEventListener("click",(e)=>{
+			const t=prompt("title");
+			this.#colTitles[parseInt(e.srcElement.dataset.x)]
+			e.srcElement.innerHTML=t;		
+		});
 	}
 
 	for(let y=0;y<this.#height;y++)
@@ -274,8 +338,8 @@ html()
 
 			elInput.addEventListener("input",(e)=>
 			{
-				console.log("nnnn",e.srcElement)
-				const idx=parseInt(e.srcElement.dataset.x)+this.width* parseInt(e.srcElement.dataset.y)
+				console.log("nnnn",e.srcElement.dataset)
+				const idx=parseInt(e.srcElement.dataset.x)+this.#width* parseInt(e.srcElement.dataset.y)
 				this.#data[idx]=e.srcElement.value;
 				console.log(this.#data)
 			});
@@ -300,7 +364,27 @@ html()
 	this.#elTable=elTable;
 	document.body.appendChild(elTable)
 
-	elTable.addEventListener("keydown",(e)=>
+	this.#elTable.addEventListener("copy",(e)=>{
+
+		navigator.clipboard.writeText(this.toTxt());
+
+	})
+	this.#elTable.addEventListener("paste",(e)=>{
+		
+		console.log("paste",e)
+        this.isPasting = true;
+        if (e.clipboardData.types.indexOf("text/plain") == -1)
+        {
+            console.log("Paste failed",e.clipboardData.types);
+            return;
+        }
+        let str = e.clipboardData.getData("text/plain");
+		console.log(str);
+		this.fromTxt(str);
+		e.preventDefault();
+	});
+
+	this.#elTable.addEventListener("keydown",(e)=>
 	{
 		if(e.key=="Enter")
 		{
