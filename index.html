@@ -19,10 +19,14 @@ body
 	
 	}
 	.cell{
-		border:0px solid #777;
+		border:0px solid #aaa;
 		padding: 0px;
 		padding-bottom: 2px;
 		padding-right: 1px;
+	}
+	.cursor{
+		
+		border:1px solid #ffff00;
 	}
 
 	input
@@ -32,7 +36,7 @@ body
 		color:#fff;
 		width:calc(100% - 1px);
 		height: 100%;
-		outline: 1px solid #666;
+		outline: 1px solid #999;
 		margin-bottom: 1px;
 		border: none;
 		font-family: monospace;
@@ -41,6 +45,9 @@ body
 			outline: 1px solid #00cccc;
 		}
 	}
+		&:focus{
+			outline: 1px solid #00cccc;
+		}
 
 }
 
@@ -49,74 +56,178 @@ body
 <body>
 <script>
 
-const width=10
-const height=10
-const data=[]
-data.length=height*width;
-
-function focusCell(x,y)
+class CellMate
 {
-	x=Math.max(0,x)
-	y=Math.max(0,y)
+#width=10
+#height=10
+#data=[]
+#cursorX=0;
+#cursorY=0;
+#elTable=null;
+#elActiveInput=null;
 
-	x=Math.min(width-1,x)
-	y=Math.min(height-1,y)
-
-	<!-- document.getElementById("cell"+x+"_"+y).focus(); -->
-	document.getElementById("cell"+x+"_"+y).select();
-
-
+constructor()
+{
+	this.#data.length=this.#height*this.#width;
+	this.html();
+	this.setCursor(this.#cursorX,this.#cursorY);
 }
 
-const elTable=document.createElement("div")
-elTable.classList.add("table")
-for(let y=0;y<height;y++)
+cellId(x,y)
 {
-	const elRow=document.createElement("div")
-	elRow.classList.add("row");
-	elTable.appendChild(elRow);
+	return "cell"+x+"_"+y;	
+}
 
-	for(let x=0;x<width;x++)
-	{
-		const elCell=document.createElement("div")
-		elCell.classList.add("cell")
-		elRow.appendChild(elCell)
-		const elInput=document.createElement("input");
-		elInput.id="cell"+x+"_"+y;
-		elInput.dataset.x=x;
-		elInput.dataset.y=y;
-		elCell.appendChild(elInput)
+clampCursor()
+{
+	this.#cursorX=Math.max(0,this.#cursorX)
+	this.#cursorY=Math.max(0,this.#cursorY)
 
-		elInput.addEventListener("input",(e)=>{
-			console.log("nnnn",e.srcElement)
-			
-			const idx=parseInt(e.srcElement.dataset.x)+width* parseInt(e.srcElement.dataset.y)
-			data[idx]=e.srcElement.value;
-			console.log(data)
-			
-		});
-		elInput.addEventListener("keydown",(e)=>{
-			if(e.key=="ArrowDown")			
-			{
-				focusCell(parseInt(e.srcElement.dataset.x), parseInt(e.srcElement.dataset.y)+1)
-			}
-			else if(e.key=="ArrowUp")			
-			{
-				focusCell(parseInt(e.srcElement.dataset.x), parseInt(e.srcElement.dataset.y)-1)
-			}
-			else if(e.key=="ArrowLeft")			
-			{
-				focusCell(parseInt(e.srcElement.dataset.x)-1, parseInt(e.srcElement.dataset.y))
-			}
-			else if(e.key=="ArrowRight")			
-			{
-				focusCell(parseInt(e.srcElement.dataset.x)+1, parseInt(e.srcElement.dataset.y))
-			}
+	this.#cursorX=Math.min(this.#width-1,this.#cursorX)
+	this.#cursorY=Math.min(this.#height-1,this.#cursorY)
+}
+
+focusCell(x,y)
+{
+	this.setCursor(x,y);
+	this.getCursorEl().removeAttribute("readonly")
+
+	this.#elActiveInput=this.getCursorEl()
+
+	this.getCursorEl().focus();
+	this.getCursorEl().select();
+}
+unFocusInput()
+{
+	if(!this.#elActiveInput)return;
+	this.#elActiveInput.blur();
+	this.getCursorEl().setAttribute("readonly",true)
+	this.#elActiveInput=null;
 	
-		});
-	}
 }
-document.body.appendChild(elTable)
+
+setCursor(x,y)
+{
+	let cursorEl=this.getCursorEl();
+	if(cursorEl)
+	{
+		cursorEl.classList.remove("cursor");
+		if(this.#elActiveInput) this.unFocusInput();
+	}
+
+	this.#cursorX=x;
+	this.#cursorY=y;
+	this.clampCursor();
+
+	cursorEl=this.getCursorEl()
+	cursorEl.classList.add("cursor");
+	cursorEl.setAttribute("readonly",true)
+	this.#elTable.focus()
+}
+
+getCursorEl( )
+{
+	return document.getElementById(this.cellId(this.#cursorX,this.#cursorY));
+}
+
+moveCursorUp()
+{
+	this.setCursor(this.#cursorX,this.#cursorY-1)
+}
+
+moveCursorDown()
+{
+	this.setCursor(this.#cursorX,this.#cursorY+1)
+}
+
+moveCursorLeft()
+{
+	this.setCursor(this.#cursorX-1,this.#cursorY)
+}
+
+moveCursorRight()
+{
+	this.setCursor(this.#cursorX+1,this.#cursorY)
+}
+
+html()
+{
+	const elTable=document.createElement("div")
+	elTable.classList.add("table")
+	elTable.setAttribute("tabindex",1);
+	for(let y=0;y<this.#height;y++)
+	{
+		const elRow=document.createElement("div")
+		elRow.classList.add("row");
+		elTable.appendChild(elRow);
+
+		for(let x=0;x<this.#width;x++)
+		{
+			const elCell=document.createElement("div")
+			elCell.classList.add("cell")
+			elRow.appendChild(elCell)
+			const elInput=document.createElement("input");
+			elInput.id=this.cellId(x,y)
+			elInput.setAttribute("readonly",true)
+			elInput.dataset.x=x;
+			elInput.dataset.y=y;
+			elCell.appendChild(elInput);
+
+			elInput.addEventListener("input",(e)=>
+			{
+				console.log("nnnn",e.srcElement)
+				const idx=parseInt(e.srcElement.dataset.x)+this.width* parseInt(e.srcElement.dataset.y)
+				this.#data[idx]=e.srcElement.value;
+				console.log(this.#data)
+			});
+
+
+			elCell.addEventListener("click",(e)=>
+			{
+				this.setCursor(parseInt(e.srcElement.dataset.x), parseInt(e.srcElement.dataset.y))
+			});
+			elInput.addEventListener("dblclick",(e)=>
+			{
+				this.focusCell(parseInt(e.srcElement.dataset.x), parseInt(e.srcElement.dataset.y));
+			});
+
+			elInput.addEventListener("keydown",(e)=>
+			{
+	
+			});
+		}
+	}
+	this.#elTable=elTable;
+	document.body.appendChild(elTable)
+
+	elTable.addEventListener("keydown",(e)=>
+	{
+		if(e.key=="Enter")
+		{
+this.unFocusInput();
+			this.focusCell(this.#cursorX,this.#cursorY);
+		}
+		else if(e.key=="ArrowDown") this.moveCursorDown();
+		else if(e.key=="ArrowUp") this.moveCursorUp();
+		else if(e.key=="ArrowLeft") this.moveCursorLeft();
+		else if(e.key=="ArrowRight") this.moveCursorRight();
+		else
+			if(e.code)
+			if(e.code.startsWith("Digit")||e.code.startsWith("Key"))
+			{
+
+				if(!this.#elActiveInput) this.focusCell(this.#cursorX,this.#cursorY);
+			}
+			console.log(e);
+
+	});
+}
+	
+}
+
+
+
+new CellMate()
 
 </script>
 </body>
