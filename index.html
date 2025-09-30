@@ -19,21 +19,28 @@ body
 	
 	}
 	.cell{
-		border:1px solid #777;
-		padding: 2px;
-		min-height: 20px;
-
+		border:0px solid #777;
+		padding: 0px;
+		padding-bottom: 2px;
+		padding-right: 1px;
 	}
-		input{
-		display: inline-block;
-			background-color: #222;
-			color:#fff;
-			margin: 1px;
-		}
 
-*:focus{
-	outline: 1px solid #00ffff;
-}
+	input
+	{
+		display: block;
+		background-color:#222;
+		color:#fff;
+		width:calc(100% - 1px);
+		height: 100%;
+		outline: 1px solid #666;
+		margin-bottom: 1px;
+		border: none;
+
+		&:focus{
+			outline: 1px solid #00cccc;
+		}
+	}
+
 }
 
 </style>
@@ -45,25 +52,26 @@ const width=10
 const height=10
 const data=[]
 data.length=height*width;
-console.log("srnmesrtnesr")
 
 const elTable=document.createElement("div")
 elTable.classList.add("table")
-for(let x=0;x<10;x++)
+for(let x=0;x<width;x++)
 {
 	const elRow=document.createElement("div")
 	elRow.classList.add("row");
 	elTable.appendChild(elRow);
 
-	for(let y=0;y<10;y++)
+	for(let y=0;y<height;y++)
 	{
-		const elCell=document.createElement("input")
+		const elCell=document.createElement("div")
 		elCell.classList.add("cell")
-		elCell.dataset.x=x;
-		elCell.dataset.y=y;
 		elRow.appendChild(elCell)
+		const elInput=document.createElement("input")
+		elInput.dataset.x=x;
+		elInput.dataset.y=y;
+		elCell.appendChild(elInput)
 
-		elCell.addEventListener("input",(e)=>{
+		elInput.addEventListener("input",(e)=>{
 			console.log("nnnn",e.srcElement)
 			
 			const idx=parseInt(e.srcElement.dataset.x)+width* parseInt(e.srcElement.dataset.y)
