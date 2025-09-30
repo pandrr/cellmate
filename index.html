@@ -9,25 +9,36 @@ body
 	color:#ccc
 }
 
-.table{
+.table
+{
+	font-family: monospace;
 	display: grid;
-	grid-template-rows: repeat(10,1fr);
+	grid-template-rows: repeat(11,1fr);
 	
 	.row{
 		display: grid;
-	  grid-template-columns: repeat(10,1fr);
-	
+		grid-template-columns: repeat(11,1fr);
 	}
-	.cell{
+
+	.head{
+		display: inline-block;
+		background-color: #333;
+		text-align: center;
+		outline: 1px solid #999;
+	}
+
+	.cell,.head{
 		border:0px solid #aaa;
 		padding: 0px;
 		padding-bottom: 2px;
 		padding-right: 1px;
 	}
+
 	.cursor{
 		
 		border:1px solid #ffff00;
 	}
+
 	.selected{
 		background-color: #555526;
 	}
@@ -104,6 +115,7 @@ focusCell(x,y)
 	this.getCursorEl().focus();
 	this.getCursorEl().select();
 }
+
 unFocusInput()
 {
 	if(!this.#elActiveInput)return;
@@ -163,6 +175,20 @@ unselectAll()
 	this.#selectionStartX=this.#selectionStartY=this.#selectionEndX=this.#selectionEndY=-1;
  }
 
+deleteSelectionContent(c)
+{
+	const sx=Math.min(this.#selectionStartX,this.#selectionEndX)
+	const sy=Math.min(this.#selectionStartY,this.#selectionEndY)
+	const ex=Math.max(this.#selectionStartX,this.#selectionEndX)
+	const ey=Math.max(this.#selectionStartY,this.#selectionEndY)
+
+	for(let y=sy;y<=ey;y++)
+		for(let x=sx;x<=ex;x++)
+		{
+			document.getElementById(this.cellId(x,y)).value="0"
+		}
+}
+
 updateSelection()
 {
 	let eles=Array.from(this.#elTable.getElementsByClassName("selected"));
@@ -173,14 +199,11 @@ updateSelection()
 	const ex=Math.max(this.#selectionStartX,this.#selectionEndX)
 	const ey=Math.max(this.#selectionStartY,this.#selectionEndY)
 
-
 	for(let y=sy;y<=ey;y++)
 		for(let x=sx;x<=ex;x++)
 		{
-			console.log(x,y)
 			document.getElementById(this.cellId(x,y)).classList.add("selected")
 		}
-	
 }
 
 getCursorEl( )
@@ -213,11 +236,29 @@ html()
 	const elTable=document.createElement("div")
 	elTable.classList.add("table")
 	elTable.setAttribute("tabindex",1);
+
+
+	const elRow=document.createElement("div")
+	elRow.classList.add("row");
+	elTable.appendChild(elRow);
+	for(let x=0;x<this.#width+1;x++)
+	{
+		const elColHead=document.createElement("div")
+		elColHead.classList.add("head")
+		elRow.appendChild(elColHead)
+		if(x) elColHead.innerHTML=x;
+	}
+
 	for(let y=0;y<this.#height;y++)
 	{
 		const elRow=document.createElement("div")
 		elRow.classList.add("row");
 		elTable.appendChild(elRow);
+
+		const elRowHead=document.createElement("div")
+		elRowHead.classList.add("head")
+		elRow.appendChild(elRowHead)
+		elRowHead.innerHTML=y;
 
 		for(let x=0;x<this.#width;x++)
 		{
@@ -239,11 +280,11 @@ html()
 				console.log(this.#data)
 			});
 
-
 			elCell.addEventListener("click",(e)=>
 			{
 				this.setCursor(parseInt(e.srcElement.dataset.x), parseInt(e.srcElement.dataset.y),e)
 			});
+
 			elInput.addEventListener("dblclick",(e)=>
 			{
 				this.focusCell(parseInt(e.srcElement.dataset.x), parseInt(e.srcElement.dataset.y),e);
@@ -255,6 +296,7 @@ html()
 			});
 		}
 	}
+
 	this.#elTable=elTable;
 	document.body.appendChild(elTable)
 
@@ -262,9 +304,10 @@ html()
 	{
 		if(e.key=="Enter")
 		{
-this.unFocusInput();
+			this.unFocusInput();
 			this.focusCell(this.#cursorX,this.#cursorY);
 		}
+		else if(e.key=="Delete"||e.key=="Backspace") this.deleteSelectionContent();
 		else if(e.key=="ArrowDown") this.moveCursorDown(e);
 		else if(e.key=="ArrowUp") this.moveCursorUp(e);
 		else if(e.key=="ArrowLeft") this.moveCursorLeft(e);
