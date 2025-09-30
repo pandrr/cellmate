@@ -28,6 +28,9 @@ body
 		
 		border:1px solid #ffff00;
 	}
+	.selected{
+		background-color: #555526;
+	}
 
 	input
 	{
@@ -65,6 +68,10 @@ class CellMate
 #cursorY=0;
 #elTable=null;
 #elActiveInput=null;
+#selectionStartX=-1
+#selectionStartY=-1
+#selectionEndX=-1
+#selectionEndY=-1
 
 constructor()
 {
@@ -103,11 +110,12 @@ unFocusInput()
 	this.#elActiveInput.blur();
 	this.getCursorEl().setAttribute("readonly",true)
 	this.#elActiveInput=null;
-	
 }
 
-setCursor(x,y)
+setCursor(x,y,e)
 {
+	if(e&&!e.shiftKey&&this.#selectionEndX!=-1)this.unselectAll();
+	if(e&&e.shiftKey&&this.#selectionStartX==-1)this.startSelection(this.#cursorX,this.#cursorY);
 	let cursorEl=this.getCursorEl();
 	if(cursorEl)
 	{
@@ -120,9 +128,59 @@ setCursor(x,y)
 	this.clampCursor();
 
 	cursorEl=this.getCursorEl()
-	cursorEl.classList.add("cursor");
-	cursorEl.setAttribute("readonly",true)
+	if(cursorEl)
+	{
+		cursorEl.classList.add("cursor");
+		cursorEl.setAttribute("readonly",true)
+	}
 	this.#elTable.focus()
+	if(e&&e.shiftKey)this.setEndSelection(this.#cursorX,this.#cursorY);
+}
+
+
+startSelection(x,y)
+{
+	this.#selectionStartX=x
+	this.#selectionStartY=y
+}
+
+setEndSelection(x,y)
+{
+	this.#selectionEndX=x
+	this.#selectionEndY=y
+	this.updateSelection();
+}
+unselectAll()
+{
+	let eles=this.#elTable.getElementsByClassName("selected")
+	while(eles.length)
+	{
+		for(let i=0;i<eles.length;i++)eles[i].classList.remove("selected")
+		eles=this.#elTable.getElementsByClassName("selected")
+		console.log("sel eles",eles.length)
+	}
+
+	this.#selectionStartX=this.#selectionStartY=this.#selectionEndX=this.#selectionEndY=-1;
+ }
+
+updateSelection()
+{
+	let eles=Array.from(this.#elTable.getElementsByClassName("selected"));
+	for(let i=0;i<eles.length;i++)eles[i].classList.remove("selected")
+
+	const sx=Math.min(this.#selectionStartX,this.#selectionEndX)
+	const sy=Math.min(this.#selectionStartY,this.#selectionEndY)
+	const ex=Math.max(this.#selectionStartX,this.#selectionEndX)
+	const ey=Math.max(this.#selectionStartY,this.#selectionEndY)
+
+
+	for(let y=sy;y<=ey;y++)
+		for(let x=sx;x<=ex;x++)
+		{
+			console.log(x,y)
+			document.getElementById(this.cellId(x,y)).classList.add("selected")
+		}
+	
 }
 
 getCursorEl( )
@@ -130,24 +188,24 @@ getCursorEl( )
 	return document.getElementById(this.cellId(this.#cursorX,this.#cursorY));
 }
 
-moveCursorUp()
+moveCursorUp(e)
 {
-	this.setCursor(this.#cursorX,this.#cursorY-1)
+	this.setCursor(this.#cursorX,this.#cursorY-1,e)
 }
 
-moveCursorDown()
+moveCursorDown(e)
 {
-	this.setCursor(this.#cursorX,this.#cursorY+1)
+	this.setCursor(this.#cursorX,this.#cursorY+1,e)
 }
 
-moveCursorLeft()
+moveCursorLeft(e)
 {
-	this.setCursor(this.#cursorX-1,this.#cursorY)
+	this.setCursor(this.#cursorX-1,this.#cursorY,e)
 }
 
-moveCursorRight()
+moveCursorRight(e)
 {
-	this.setCursor(this.#cursorX+1,this.#cursorY)
+	this.setCursor(this.#cursorX+1,this.#cursorY,e)
 }
 
 html()
@@ -184,11 +242,11 @@ html()
 
 			elCell.addEventListener("click",(e)=>
 			{
-				this.setCursor(parseInt(e.srcElement.dataset.x), parseInt(e.srcElement.dataset.y))
+				this.setCursor(parseInt(e.srcElement.dataset.x), parseInt(e.srcElement.dataset.y),e)
 			});
 			elInput.addEventListener("dblclick",(e)=>
 			{
-				this.focusCell(parseInt(e.srcElement.dataset.x), parseInt(e.srcElement.dataset.y));
+				this.focusCell(parseInt(e.srcElement.dataset.x), parseInt(e.srcElement.dataset.y),e);
 			});
 
 			elInput.addEventListener("keydown",(e)=>
@@ -207,10 +265,10 @@ html()
 this.unFocusInput();
 			this.focusCell(this.#cursorX,this.#cursorY);
 		}
-		else if(e.key=="ArrowDown") this.moveCursorDown();
-		else if(e.key=="ArrowUp") this.moveCursorUp();
-		else if(e.key=="ArrowLeft") this.moveCursorLeft();
-		else if(e.key=="ArrowRight") this.moveCursorRight();
+		else if(e.key=="ArrowDown") this.moveCursorDown(e);
+		else if(e.key=="ArrowUp") this.moveCursorUp(e);
+		else if(e.key=="ArrowLeft") this.moveCursorLeft(e);
+		else if(e.key=="ArrowRight") this.moveCursorRight(e);
 		else
 			if(e.code)
 			if(e.code.startsWith("Digit")||e.code.startsWith("Key"))
