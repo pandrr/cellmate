@@ -35,6 +35,7 @@ body
 		outline: 1px solid #666;
 		margin-bottom: 1px;
 		border: none;
+		font-family: monospace;
 
 		&:focus{
 			outline: 1px solid #00cccc;
@@ -53,20 +54,35 @@ const height=10
 const data=[]
 data.length=height*width;
 
+function focusCell(x,y)
+{
+	x=Math.max(0,x)
+	y=Math.max(0,y)
+
+	x=Math.min(width-1,x)
+	y=Math.min(height-1,y)
+
+	<!-- document.getElementById("cell"+x+"_"+y).focus(); -->
+	document.getElementById("cell"+x+"_"+y).select();
+
+
+}
+
 const elTable=document.createElement("div")
 elTable.classList.add("table")
-for(let x=0;x<width;x++)
+for(let y=0;y<height;y++)
 {
 	const elRow=document.createElement("div")
 	elRow.classList.add("row");
 	elTable.appendChild(elRow);
 
-	for(let y=0;y<height;y++)
+	for(let x=0;x<width;x++)
 	{
 		const elCell=document.createElement("div")
 		elCell.classList.add("cell")
 		elRow.appendChild(elCell)
-		const elInput=document.createElement("input")
+		const elInput=document.createElement("input");
+		elInput.id="cell"+x+"_"+y;
 		elInput.dataset.x=x;
 		elInput.dataset.y=y;
 		elCell.appendChild(elInput)
@@ -78,6 +94,25 @@ for(let x=0;x<width;x++)
 			data[idx]=e.srcElement.value;
 			console.log(data)
 			
+		});
+		elInput.addEventListener("keydown",(e)=>{
+			if(e.key=="ArrowDown")			
+			{
+				focusCell(parseInt(e.srcElement.dataset.x), parseInt(e.srcElement.dataset.y)+1)
+			}
+			else if(e.key=="ArrowUp")			
+			{
+				focusCell(parseInt(e.srcElement.dataset.x), parseInt(e.srcElement.dataset.y)-1)
+			}
+			else if(e.key=="ArrowLeft")			
+			{
+				focusCell(parseInt(e.srcElement.dataset.x)-1, parseInt(e.srcElement.dataset.y))
+			}
+			else if(e.key=="ArrowRight")			
+			{
+				focusCell(parseInt(e.srcElement.dataset.x)+1, parseInt(e.srcElement.dataset.y))
+			}
+	
 		});
 	}
 }
