@@ -1,0 +1,80 @@
+<html>
+<head>
+
+<style>
+
+body
+{
+	background-color: #000;
+	color:#ccc
+}
+
+.table{
+	display: grid;
+	grid-template-rows: repeat(10,1fr);
+	
+	.row{
+		display: grid;
+	  grid-template-columns: repeat(10,1fr);
+	
+	}
+	.cell{
+		border:1px solid #777;
+		padding: 2px;
+		min-height: 20px;
+
+	}
+		input{
+		display: inline-block;
+			background-color: #222;
+			color:#fff;
+			margin: 1px;
+		}
+
+*:focus{
+	outline: 1px solid #00ffff;
+}
+}
+
+</style>
+</head>
+<body>
+<script>
+
+const width=10
+const height=10
+const data=[]
+data.length=height*width;
+console.log("srnmesrtnesr")
+
+const elTable=document.createElement("div")
+elTable.classList.add("table")
+for(let x=0;x<10;x++)
+{
+	const elRow=document.createElement("div")
+	elRow.classList.add("row");
+	elTable.appendChild(elRow);
+
+	for(let y=0;y<10;y++)
+	{
+		const elCell=document.createElement("input")
+		elCell.classList.add("cell")
+		elCell.dataset.x=x;
+		elCell.dataset.y=y;
+		elRow.appendChild(elCell)
+
+		elCell.addEventListener("input",(e)=>{
+			console.log("nnnn",e.srcElement)
+			
+			const idx=parseInt(e.srcElement.dataset.x)+width* parseInt(e.srcElement.dataset.y)
+			data[idx]=e.srcElement.value;
+			console.log(data)
+			
+		});
+	}
+}
+document.body.appendChild(elTable)
+
+</script>
+</body>
+</html>
