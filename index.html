@@ -24,9 +24,15 @@ body
 
 	.head{
 		display: inline-block;
-		background-color: #333;
+		background-color: #151515;
 		text-align: center;
 		outline: 1px solid var(--color-grid);
+
+		&.selected{
+			outline: 1px solid var(--color-grid);
+			background-color: #282800;
+			color:#ffff00;
+		}
 	}
 
 	.cell,.head{
@@ -34,6 +40,7 @@ body
 		padding: 0px;
 		padding-bottom: 2px;
 		padding-right: 1px;
+		height: 20px;
 	}
 
 	.cursor{
@@ -42,6 +49,8 @@ body
 
 	.selected{
 		background-color: #555526;
+		outline: 1px solid #888800;
+		color:#ffff00;
 	}
 
 	input
@@ -60,9 +69,10 @@ body
 			outline: 1px solid #00cccc;
 		}
 	}
-		&:focus{
-			outline: 1px solid #00cccc;
-		}
+
+	&:focus{
+		outline: 1px solid #00cccc;
+	}
 
 }
 
@@ -73,25 +83,25 @@ body
 
 class CellMate
 {
-#width=10
-#height=10
-#data=[]
-#cursorX=0;
-#cursorY=0;
-#elTable=null;
-#elActiveInput=null;
-#selectionStartX=-1
-#selectionStartY=-1
-#selectionEndX=-1
-#selectionEndY=-1
-#colTitles=[]
+	#width=10;
+	#height=30;
+	#data=[];
+	#cursorX=0;
+	#cursorY=0;
+	#elTable=null;
+	#elActiveInput=null;
+	#selectionStartX=-1
+	#selectionStartY=-1
+	#selectionEndX=-1
+	#selectionEndY=-1
+	#colTitles=[]
 
-constructor()
-{
-	this.#data.length=this.#height*this.#width;
-	this.html();
-	this.setCursor(this.#cursorX,this.#cursorY);
-}
+	constructor()
+	{
+		this.#data.length=this.#height*this.#width;
+		this.html();
+		this.setCursor(this.#cursorX,this.#cursorY);
+	}
 
 cellId(x,y)
 {
@@ -110,7 +120,7 @@ clampCursor()
 focusCell(x,y)
 {
 	this.setCursor(x,y);
-	this.getCursorEl().removeAttribute("readonly")
+	this.getCursorEl()?.removeAttribute("readonly")
 
 	this.#elActiveInput=this.getCursorEl()
 
@@ -130,6 +140,10 @@ setCursor(x,y,e)
 {
 	if(e&&!e.shiftKey&&this.#selectionEndX!=-1)this.unselectAll();
 	if(e&&e.shiftKey&&this.#selectionStartX==-1)this.startSelection(this.#cursorX,this.#cursorY);
+	else{
+		document.getElementsByClassName("rowHead"+this.#cursorY)[0].classList.remove("selected");
+		document.getElementsByClassName("colHead"+this.#cursorX)[0].classList.remove("selected");
+	}
 	let cursorEl=this.getCursorEl();
 	if(cursorEl)
 	{
@@ -149,6 +163,13 @@ setCursor(x,y,e)
 	}
 	this.#elTable.focus()
 	if(e&&e.shiftKey)this.setEndSelection(this.#cursorX,this.#cursorY);
+	else
+	{
+	document.getElementsByClassName("rowHead"+this.#cursorY)[0].classList.add("selected");
+	document.getElementsByClassName("colHead"+this.#cursorX)[0].classList.add("selected");
+		
+	}
+
 }
 
 startSelection(x,y)
@@ -171,32 +192,41 @@ unselectAll()
 	{
 		for(let i=0;i<eles.length;i++)eles[i].classList.remove("selected")
 		eles=this.#elTable.getElementsByClassName("selected")
-		console.log("sel eles",eles.length)
 	}
 
 	this.#selectionStartX=this.#selectionStartY=this.#selectionEndX=this.#selectionEndY=-1;
 }
+getValue(x,y)
+{
+	let v=this.#data[x+y*this.#width];
+	if(v==undefined)v="";
+	return v;
+}
+
 forEachSelected(cb)
 {
-	
 	const sx=Math.min(this.#selectionStartX,this.#selectionEndX)
 	const sy=Math.min(this.#selectionStartY,this.#selectionEndY)
 	const ex=Math.max(this.#selectionStartX,this.#selectionEndX)
 	const ey=Math.max(this.#selectionStartY,this.#selectionEndY)
 
-	for(let y=sy;y<=ey;y++)
-		for(let x=sx;x<=ex;x++)
-		{
-			let v=this.#data[x+y*this.#width];
-			if(v==undefined)v="";
-			cb(x,y,v);
-		}
+	let count=0;
+	if(sx!=1&&sy!=1&&ex!=1&&ey!=-1)
+		for(let y=sy;y<=ey;y++)
+			for(let x=sx;x<=ex;x++)
+			{
+				count++;
+				cb(x,y,this.getValue(x,y));
+			}
+
+	if(count==0)cb(this.#cursorX,this.#cursorY,this.getValue(this.#cursorX,this.#cursorY))
 }
 
 deleteSelectionContent(c)
 {
 	this.forEachSelected((x,y,v)=>{
-		document.getElementById(this.cellId(x,y)).value="0"
+		const elCell=	document.getElementById(this.cellId(x,y))
+		if(elCell) elCell.value=""
 	})
 }
 
@@ -211,10 +241,22 @@ updateSelection()
 	const ey=Math.max(this.#selectionStartY,this.#selectionEndY)
 
 	for(let y=sy;y<=ey;y++)
+	{
+		const eleRowHead=document.getElementsByClassName("rowHead"+y)
+		if(eleRowHead[0])eleRowHead[0].classList.add("selected")
+
 		for(let x=sx;x<=ex;x++)
 		{
-			document.getElementById(this.cellId(x,y)).classList.add("selected")
+			if(y==sy)
+			{
+				const eleColHead=document.getElementsByClassName("colHead"+x)
+				if(eleColHead[0])eleColHead[0].classList.add("selected")
+			}
+
+			const ele=document.getElementById(this.cellId(x,y))
+			ele?.classList.add("selected")
 		}
+	}
 }
 
 getCursorEl( )
@@ -241,10 +283,9 @@ moveCursorRight(e)
 {
 	this.setCursor(this.#cursorX+1,this.#cursorY,e)
 }
+
 setValue(x,y,v)
 {
-console.log(x,y)
-
 	const idx=x+this.#width* y;
 	while(idx>this.#data.length)
 	{
@@ -260,7 +301,6 @@ fromTxt(txt,x,y)
 	const separator="\t";
 	const rows=txt.split("\n");
 
-
 	for(let i=0;i<rows.length;i++)
 	{
 		const cols=rows[i].split(separator);
@@ -269,8 +309,6 @@ fromTxt(txt,x,y)
 			this.setValue(this.#cursorX+j,this.#cursorY+i,cols[j])
 
 	}
-
-
 }
 
 toTxt()
@@ -295,20 +333,20 @@ html()
 	elTable.classList.add("table")
 	elTable.setAttribute("tabindex",1);
 
-
 	const elRow=document.createElement("div")
 	elRow.classList.add("row");
 	elTable.appendChild(elRow);
 	for(let x=0;x<this.#width+1;x++)
 	{
 		const elColHead=document.createElement("div")
-		elColHead.classList.add("head")
+		elColHead.classList.add("head");
+		if(x>0)elColHead.classList.add("colHead"+(x-1));
 		elColHead.dataset.idx=x;
-		elRow.appendChild(elColHead)
+		elRow.appendChild(elColHead);
 		if(x) elColHead.innerHTML=x;
 		elColHead.addEventListener("click",(e)=>{
 			const t=prompt("title");
-			this.#colTitles[parseInt(e.srcElement.dataset.x)]
+			this.#colTitles[parseInt(e.srcElement.dataset.x)];
 			e.srcElement.innerHTML=t;		
 		});
 	}
@@ -321,6 +359,7 @@ html()
 
 		const elRowHead=document.createElement("div")
 		elRowHead.classList.add("head")
+		elRowHead.classList.add("rowHead"+y)
 		elRow.appendChild(elRowHead)
 		elRowHead.innerHTML=y;
 
@@ -336,12 +375,33 @@ html()
 			elInput.dataset.y=y;
 			elCell.appendChild(elInput);
 
+			elInput.addEventListener("pointerdown",(e)=>
+			{
+
+				this.mouseDown=true;
+				this.#selectionStartX= parseInt(e.srcElement.dataset.x);
+				this.#selectionStartY= parseInt(e.srcElement.dataset.y);
+				this.setCursor(this.#selectionStartX,this.#selectionStartY)
+			});
+			elInput.addEventListener("pointerup",(e)=>
+			{
+				this.mouseDown=false;
+			});
+			elInput.addEventListener("pointerenter",(e)=>
+			{
+
+				if(this.mouseDown&&this.#selectionStartX!=-1)
+				{
+					this.#selectionEndX= parseInt(e.srcElement.dataset.x);
+					this.#selectionEndY= parseInt(e.srcElement.dataset.y);
+					this.updateSelection()
+				}
+
+			});
 			elInput.addEventListener("input",(e)=>
 			{
-				console.log("nnnn",e.srcElement.dataset)
 				const idx=parseInt(e.srcElement.dataset.x)+this.#width* parseInt(e.srcElement.dataset.y)
 				this.#data[idx]=e.srcElement.value;
-				console.log(this.#data)
 			});
 
 			elCell.addEventListener("click",(e)=>
@@ -364,14 +424,12 @@ html()
 	this.#elTable=elTable;
 	document.body.appendChild(elTable)
 
-	this.#elTable.addEventListener("copy",(e)=>{
-
+	this.#elTable.addEventListener("copy",(e)=>
+	{
 		navigator.clipboard.writeText(this.toTxt());
-
 	})
-	this.#elTable.addEventListener("paste",(e)=>{
-		
-		console.log("paste",e)
+	this.#elTable.addEventListener("paste",(e)=>
+	{
         this.isPasting = true;
         if (e.clipboardData.types.indexOf("text/plain") == -1)
         {
@@ -403,7 +461,6 @@ html()
 
 				if(!this.#elActiveInput) this.focusCell(this.#cursorX,this.#cursorY);
 			}
-			console.log(e);
 
 	});
 }
