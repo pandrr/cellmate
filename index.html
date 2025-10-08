@@ -9,6 +9,14 @@ body
 	color:#ccc
 }
 
+.cellmateStatus
+{
+	font-family: monospace;
+	background-color: #151515;
+	padding: 5px;
+		outline: 1px solid #555;
+}
+
 .table
 {
 	--color-grid:#444;
@@ -71,7 +79,7 @@ body
 	}
 
 	&:focus{
-		outline: 1px solid #00cccc;
+		outline: 1px solid #444;
 	}
 
 }
@@ -87,12 +95,14 @@ class CellMate
 	#height=30;
 	#data=[];
 	#dataWidth=5;
-	#dataHeight=50;
+	#dataHeight=100;
 
 	#cursorX=0;
 	#cursorY=0;
+
 	#elTable=null;
 	#elActiveInput=null;
+
 	#selectionStartX=-1
 	#selectionStartY=-1
 	#selectionEndX=-1
@@ -316,8 +326,8 @@ scrollUp()
 	this.#scrollY--;
 	if(this.#scrollY<0)this.#scrollY=0;
 	this.redrawData();
-	console.log(this.#scrollY);
 }
+
 moveY(num)
 {
 	for(let i=0;i<Math.abs(num);i++)
@@ -350,7 +360,6 @@ fromTxt(txt,x,y)
 
 		for(let j=0;j<cols.length;j++)
 			this.setValue(this.#cursorX+j,this.#cursorY+i,cols[j])
-
 	}
 }
 
@@ -400,8 +409,7 @@ redrawData()
 }
 updateStatus()
 {
-	
-this.elStatus.innerHTML=(this.#cursorX+this.#scrollX )+","+(this.#cursorY+this.#scrollY);
+	this.elStatus.innerHTML=(this.#cursorX+this.#scrollX )+","+(this.#cursorY+this.#scrollY);
 }
 
 html()
@@ -502,7 +510,7 @@ html()
 	document.body.appendChild(elTable)
 
 	this.elStatus=document.createElement("div")
-	this.elStatus.classList.add("status");
+	this.elStatus.classList.add("cellmateStatus");
 	document.body.appendChild(this.elStatus);
 
 	this.#elTable.addEventListener("copy",(e)=>
