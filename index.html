@@ -86,6 +86,9 @@ class CellMate
 	#width=10;
 	#height=30;
 	#data=[];
+	#dataWidth=5;
+	#dataHeight=50;
+
 	#cursorX=0;
 	#cursorY=0;
 	#elTable=null;
@@ -96,11 +99,12 @@ class CellMate
 	#selectionEndY=-1
 	#colTitles=[];
 	#scrollY=0;
+	#scrollX=0;
 
 	constructor()
 	{
-		this.#data.length=(this.#height*3)*this.#width;
-		for(let i=0;i<this.#data.length;i++)
+		this.#data.length=this.#dataWidth*this.#dataHeight;
+		for(let i=0;i<this.#dataWidth*this.#dataHeight;i++)
 			this.#data[i]=Math.random();
 
 		this.html();
@@ -128,8 +132,8 @@ focusCell(x,y)
 
 	this.#elActiveInput=this.getCursorEl()
 
-	this.getCursorEl().focus();
-	this.getCursorEl().select();
+	this.getCursorEl()?.focus();
+	this.getCursorEl()?.select();
 }
 
 unFocusInput()
@@ -172,6 +176,7 @@ setCursor(x,y,e)
 		document.getElementsByClassName("rowHead"+this.#cursorY)[0]?.classList.add("selected");
 		document.getElementsByClassName("colHead"+this.#cursorX)[0]?.classList.add("selected");
 	}
+	this.updateStatus();
 }
 
 startSelection(x,y)
@@ -200,7 +205,7 @@ unselectAll()
 }
 getValue(x,y)
 {
-	let v=this.#data[x+y*this.#width];
+	let v=this.#data[x+y*this.#dataWidth];
 	if(v==undefined)v="";
 	return v;
 }
@@ -280,26 +285,46 @@ moveCursorDown(e)
 
 moveCursorLeft(e)
 {
+	if(this.#cursorX<1&&this.#scrollX)return this.scrollLeft();
 	this.setCursor(this.#cursorX-1,this.#cursorY,e);
 }
 
 moveCursorRight(e)
 {
+	if(this.#cursorX>=this.#width-1)return this.scrollRight();
 	this.setCursor(this.#cursorX+1,this.#cursorY,e);
 }
 
 scrollDown()
 {
 	this.#scrollY++;
-	this.updateData();
-	console.log(this.#scrollY);
+	this.redrawData();
 }
+scrollRight()
+{
+	this.#scrollX++;
+	this.redrawData();
+}
+scrollLeft()
+{
+	this.#scrollX--;
+	this.redrawData();
+}
+
 scrollUp()
 {
 	this.#scrollY--;
 	if(this.#scrollY<0)this.#scrollY=0;
-	this.updateData();
+	this.redrawData();
 	console.log(this.#scrollY);
+}
+moveY(num)
+{
+	for(let i=0;i<Math.abs(num);i++)
+	{
+		if(num>0)this.moveCursorDown()
+		else this.moveCursorUp()
+	}
 }
 
 setValue(x,y,v)
@@ -345,8 +370,15 @@ toTxt()
 	return str+"\n";
 }
 
-updateData()
+redrawData()
 {
+	for(let x=0;x<this.#width;x++)
+	{
+		const head=document.getElementsByClassName("colHead"+x)[0];
+		let s=String(x+this.#scrollX);
+		if(this.#colTitles[x+this.#scrollX]) s+=":" +this.#colTitles[x+this.#scrollX];
+		head.innerHTML=s;
+	}
 
 	for(let y=0;y<this.#height;y++)
 	{
@@ -356,12 +388,20 @@ updateData()
 
 		for(let x=0;x<this.#width;x++)
 		{
-			const elCell=	document.getElementById(this.cellId(x,y))
-			elCell.value= this.#data[x+(y+this.#scrollY)*this.#width]
+			const elCell=document.getElementById(this.cellId(x,y));
+			if(x+this.#scrollX<this.#dataWidth&& y+this.#scrollY<this.#dataHeight)
+				elCell.value=this.#data[(x+this.#scrollX)+(y+this.#scrollY)*this.#dataWidth];
+			else elCell.value="";
 		}
 
 	}
-	 
+	this.updateStatus();
+
+}
+updateStatus()
+{
+	
+this.elStatus.innerHTML=(this.#cursorX+this.#scrollX )+","+(this.#cursorY+this.#scrollY);
 }
 
 html()
@@ -437,7 +477,7 @@ html()
 
 			elInput.addEventListener("input",(e)=>
 			{
-				const idx=parseInt(e.srcElement.dataset.x)+this.#width* parseInt(e.srcElement.dataset.y)
+				const idx=parseInt(e.srcElement.dataset.x)+this.#dataWidth* parseInt(e.srcElement.dataset.y)
 				this.#data[idx]=e.srcElement.value;
 			});
 
@@ -461,10 +501,15 @@ html()
 	this.#elTable=elTable;
 	document.body.appendChild(elTable)
 
+	this.elStatus=document.createElement("div")
+	this.elStatus.classList.add("status");
+	document.body.appendChild(this.elStatus);
+
 	this.#elTable.addEventListener("copy",(e)=>
 	{
 		navigator.clipboard.writeText(this.toTxt());
-	})
+	});
+
 	this.#elTable.addEventListener("paste",(e)=>
 	{
         this.isPasting = true;
@@ -499,14 +544,17 @@ html()
 		else if(!this.#elActiveInput &&  e.key=="ArrowUp") this.moveCursorUp(e);
 		else if(!this.#elActiveInput &&  e.key=="ArrowLeft") this.moveCursorLeft(e);
 		else if(!this.#elActiveInput &&  e.key=="ArrowRight") this.moveCursorRight(e);
+		else if(!this.#elActiveInput &&  e.key=="PageUp") this.moveY(-this.#height/2);
+		else if(!this.#elActiveInput &&  e.key=="PageDown") this.moveY(this.#height/2);
 		else
 			if(e.code && (e.code.startsWith("Digit") || e.code.startsWith("Key") ))
 			{
 				if(!this.#elActiveInput) this.focusCell(this.#cursorX,this.#cursorY);
 			}
+			else console.log(e)
 
 	});
-	this.updateData();
+	this.redrawData();
 }
 	
 }
