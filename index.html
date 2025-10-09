@@ -95,7 +95,7 @@ class CellMate
 	#height=30;
 	#data=[];
 	#dataWidth=5;
-	#dataHeight=100;
+	#dataHeight=999100;
 
 	#cursorX=0;
 	#cursorY=0;
@@ -305,14 +305,14 @@ moveCursorRight(e)
 	this.setCursor(this.#cursorX+1,this.#cursorY,e);
 }
 
-scrollDown()
+scrollDown(num)
 {
-	this.#scrollY++;
+	this.#scrollY+=num||1;
 	this.redrawData();
 }
-scrollRight()
+scrollRight(num)
 {
-	this.#scrollX++;
+	this.#scrollX+=num||1;
 	this.redrawData();
 }
 scrollLeft()
@@ -409,7 +409,12 @@ redrawData()
 }
 updateStatus()
 {
-	this.elStatus.innerHTML=(this.#cursorX+this.#scrollX )+","+(this.#cursorY+this.#scrollY);
+let str=""
+	str+=(this.#cursorX+this.#scrollX )+","+(this.#cursorY+this.#scrollY);
+	str+=" | ";
+	str+=this.#dataWidth+"x"+this.#dataHeight;
+
+	this.elStatus.innerHTML=str;
 }
 
 html()
@@ -482,6 +487,11 @@ html()
 					this.updateSelection()
 				}
 			});
+			elInput.addEventListener("wheel",(e)=>
+			{
+				if(e.deltaY>0)this.scrollDown(2)
+				else this.scrollUp(2)
+			});
 
 			elInput.addEventListener("input",(e)=>
 			{
@@ -552,8 +562,8 @@ html()
 		else if(!this.#elActiveInput &&  e.key=="ArrowUp") this.moveCursorUp(e);
 		else if(!this.#elActiveInput &&  e.key=="ArrowLeft") this.moveCursorLeft(e);
 		else if(!this.#elActiveInput &&  e.key=="ArrowRight") this.moveCursorRight(e);
-		else if(!this.#elActiveInput &&  e.key=="PageUp") this.moveY(-this.#height/2);
-		else if(!this.#elActiveInput &&  e.key=="PageDown") this.moveY(this.#height/2);
+		else if(!this.#elActiveInput &&  e.key=="PageUp") this.moveY(-this.#height);
+		else if(!this.#elActiveInput &&  e.key=="PageDown") this.moveY(this.#height);
 		else
 			if(e.code && (e.code.startsWith("Digit") || e.code.startsWith("Key") ))
 			{
