@@ -185,19 +185,27 @@ unFocusInput()
 
 setCursor(x,y,e)
 {
-	this.setCursorAbs(x+this.#scrollX,y+this.#scrollY)
+	this.setCursorAbs(x+this.#scrollX,y+this.#scrollY,e)
 }
 
 setCursorAbs(x,y,e)
 {
+	if(e&&e.shiftKey&&this.#selectionStartX==-1)
+	{
+		this.startSelection(this.absX,this.absY);
+	}
+
 	x-=this.#scrollX;
 	y-=this.#scrollY;
+
 	if(e&&!e.shiftKey&&this.#selectionEndX!=-1)this.unselectAll();
-	if(e&&e.shiftKey&&this.#selectionStartX==-1)this.startSelection(this.absX,this.absY);
-	else{
+
+	if(e&&e.shiftKey&&this.#selectionStartX==-1)
+	{
 		document.getElementsByClassName("rowHead"+this.cursorScreenY)[0]?.classList.remove("selected");
 		document.getElementsByClassName("colHead"+this.cursorScreenX)[0]?.classList.remove("selected");
 	}
+
 	let cursorEl=this.getCursorEl();
 	if(cursorEl)
 	{
@@ -216,7 +224,7 @@ setCursorAbs(x,y,e)
 		cursorEl.setAttribute("readonly",true)
 	}
 	this.#elTable.focus()
-	if(e&&e.shiftKey)this.setEndSelection(this.cursorScreenX,this.cursorScreenY);
+	if(e&&e.shiftKey)this.setEndSelection(this.cursorScreenX+this.#scrollX,this.cursorScreenY+this.#scrollY );
 	else
 	{
 		document.getElementsByClassName("rowHead"+this.cursorScreenY)[0]?.classList.add("selected");
@@ -344,6 +352,12 @@ moveCursorRight(e)
 	this.setCursor(this.cursorScreenX+1,this.cursorScreenY,e);
 }
 
+scrollUp()
+{
+	this.#scrollY--;
+	if(this.#scrollY<0)this.#scrollY=0;
+	this.redrawData();
+}
 scrollDown(num)
 {
 	this.#scrollY+=num||1;
@@ -360,12 +374,6 @@ scrollLeft()
 	this.redrawData();
 }
 
-scrollUp()
-{
-	this.#scrollY--;
-	if(this.#scrollY<0)this.#scrollY=0;
-	this.redrawData();
-}
 
 moveY(num)
 {
@@ -525,11 +533,18 @@ html()
 			elInput.addEventListener("pointerup",(e)=>
 			{
 				this.mouseDown=false;
+				if(parseInt(e.srcElement.dataset.x)+this.#scrollX==this.#selectionStartX&& parseInt(e.srcElement.dataset.y)+this.#scrollY==this.#selectionStartY				)
+				{
+					this.#selectionStartX=-1;
+					this.#selectionStartY=-1;
+					this.#selectionEndX=-1;
+					this.#selectionEndY=-1;
+				}
 			});
 
 			elInput.addEventListener("pointerenter",(e)=>
 			{
-				if(this.mouseDown&&this.#selectionStartX!=-1)
+				if(this.mouseDown && this.#selectionStartX!=-1)
 				{
 					this.#selectionEndX=parseInt(e.srcElement.dataset.x)+this.#scrollX;
 					this.#selectionEndY=parseInt(e.srcElement.dataset.y)+this.#scrollY;
@@ -539,8 +554,13 @@ html()
 			});
 			elInput.addEventListener("wheel",(e)=>
 			{
-				if(e.deltaY>0)this.scrollDown(2);
-				else this.scrollUp(2);
+				if(e.deltaY>0){
+					this.scrollDown(1);
+				}
+				else {
+					this.scrollUp(1);
+				}
+
 			});
 
 			elInput.addEventListener("input",(e)=>
