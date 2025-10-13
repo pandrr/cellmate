@@ -289,9 +289,10 @@ forEachSelected(cb)
 deleteSelectionContent(c)
 {
 	this.forEachSelected((x,y,v)=>{
-		const elCell=document.getElementById(this.cellId(x,y))
-		if(elCell) elCell.value=""
+		console.log("xy",x,y)
+		this.setValue(x,y,"")
 	})
+	this.redrawData()
 }
 
 updateSelection()
@@ -374,7 +375,6 @@ scrollLeft()
 	this.redrawData();
 }
 
-
 moveY(num)
 {
 	for(let i=0;i<Math.abs(num);i++)
@@ -384,13 +384,35 @@ moveY(num)
 	}
 }
 
+resizeData(w,h)
+{
+	const newData=[]
+	for(let x=0;x<w;x++)
+	{
+		for(let y=0;y<h;y++)
+		{
+			newData[x+y*w]="";
+			if(x<this.#dataWidth && y<this.#dataHeight)
+			{
+				newData[x+y*w]=this.#data[x+y*this.#dataWidth];
+			}
+		}
+	}
+	this.#data=newData;
+	this.#dataWidth=w;
+	this.#dataHeight=h;
+	console.log("resize to ",w,h)
+}
+
 setValue(x,y,v)
 {
-	const idx=x+this.#width* y;
+	if(x>=this.#dataWidth || y>=this.#dataHeight)
+		this.resizeData(Math.max(x+1,this.#dataWidth-1),Math.max(y+1,this.#dataHeight-1))
+
+	const idx=x+this.#dataWidth*y;
 	while(idx>this.#data.length)
-	{
 		for(let i=0;i<this.#width;i++) this.#data.push("");
-	}
+
 	this.#data[idx]=v;
 	const inputEle=document.getElementById(this.cellId(x,y))
 	if(inputEle)inputEle.value=v;
@@ -565,8 +587,12 @@ html()
 
 			elInput.addEventListener("input",(e)=>
 			{
-				const idx=parseInt(e.srcElement.dataset.x)+this.#dataWidth* parseInt(e.srcElement.dataset.y);
-				this.#data[idx]=e.srcElement.value;
+				this.setValue(this.absX,this.absY,e.srcElement.value)
+			});
+
+			elInput.addEventListener("blur",(e)=>
+			{
+				this.redrawData()
 			});
 
 			elCell.addEventListener("click",(e)=>
