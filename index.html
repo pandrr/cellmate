@@ -101,8 +101,8 @@ class CellMate
 	#dataWidth=5;
 	#dataHeight=999100;
 
-	#cursorX=0;
-	#cursorY=0;
+	cursorScreenX=0;
+	cursorScreenY=0;
 
 	#elTable=null;
 	#elActiveInput=null;
@@ -122,15 +122,15 @@ class CellMate
 			this.#data[i]=Math.random();
 
 		this.html();
-		this.setCursor(this.#cursorX,this.#cursorY);
+		this.setCursor(this.cursorScreenX,this.cursorScreenY);
 	}
 	get absX()
 	{
-		return this.#cursorX+this.#scrollX
+		return this.cursorScreenX+this.#scrollX
 	}
 	get absY()
 	{
-		return this.#cursorY+this.#scrollY
+		return this.cursorScreenY+this.#scrollY
 	}
 
 	cellId(x,y)
@@ -148,11 +148,11 @@ class CellMate
 
 	clampCursor()
 	{
-		this.#cursorX=Math.max(0,this.#cursorX)
-		this.#cursorY=Math.max(0,this.#cursorY)
+		this.cursorScreenX=Math.max(0,this.cursorScreenX)
+		this.cursorScreenY=Math.max(0,this.cursorScreenY)
 
-		this.#cursorX=Math.min(this.#width-1,this.#cursorX)
-		this.#cursorY=Math.min(this.#height-1,this.#cursorY)
+		this.cursorScreenX=Math.min(this.#width-1,this.cursorScreenX)
+		this.cursorScreenY=Math.min(this.#height-1,this.cursorScreenY)
 	}
 	notify(t)
 	{
@@ -185,11 +185,18 @@ unFocusInput()
 
 setCursor(x,y,e)
 {
+	this.setCursorAbs(x+this.#scrollX,y+this.#scrollY)
+}
+
+setCursorAbs(x,y,e)
+{
+	x-=this.#scrollX;
+	y-=this.#scrollY;
 	if(e&&!e.shiftKey&&this.#selectionEndX!=-1)this.unselectAll();
 	if(e&&e.shiftKey&&this.#selectionStartX==-1)this.startSelection(this.absX,this.absY);
 	else{
-		document.getElementsByClassName("rowHead"+this.#cursorY)[0]?.classList.remove("selected");
-		document.getElementsByClassName("colHead"+this.#cursorX)[0]?.classList.remove("selected");
+		document.getElementsByClassName("rowHead"+this.cursorScreenY)[0]?.classList.remove("selected");
+		document.getElementsByClassName("colHead"+this.cursorScreenX)[0]?.classList.remove("selected");
 	}
 	let cursorEl=this.getCursorEl();
 	if(cursorEl)
@@ -198,8 +205,8 @@ setCursor(x,y,e)
 		if(this.#elActiveInput) this.unFocusInput();
 	}
 
-	this.#cursorX=x;
-	this.#cursorY=y;
+	this.cursorScreenX=x;
+	this.cursorScreenY=y;
 	this.clampCursor();
 
 	cursorEl=this.getCursorEl()
@@ -209,11 +216,11 @@ setCursor(x,y,e)
 		cursorEl.setAttribute("readonly",true)
 	}
 	this.#elTable.focus()
-	if(e&&e.shiftKey)this.setEndSelection(this.#cursorX,this.#cursorY);
+	if(e&&e.shiftKey)this.setEndSelection(this.cursorScreenX,this.cursorScreenY);
 	else
 	{
-		document.getElementsByClassName("rowHead"+this.#cursorY)[0]?.classList.add("selected");
-		document.getElementsByClassName("colHead"+this.#cursorX)[0]?.classList.add("selected");
+		document.getElementsByClassName("rowHead"+this.cursorScreenY)[0]?.classList.add("selected");
+		document.getElementsByClassName("colHead"+this.cursorScreenX)[0]?.classList.add("selected");
 	}
 	this.updateStatus();
 }
@@ -255,17 +262,20 @@ forEachSelected(cb)
 	const sy=Math.min(this.#selectionStartY,this.#selectionEndY)
 	const ex=Math.max(this.#selectionStartX,this.#selectionEndX)
 	const ey=Math.max(this.#selectionStartY,this.#selectionEndY)
+	console.log("selected",sx,sy,ex,ey)
 
 	let count=0;
-	if(sx!=1&&sy!=1&&ex!=1&&ey!=-1)
+	if(sx!=-1&&sy!=-1&&ex!=-1&&ey!=-1)
 		for(let y=sy;y<=ey;y++)
 			for(let x=sx;x<=ex;x++)
 			{
 				count++;
-				cb(x,y,this.getValue(x,y));
+				cb(x,y,this.getValue(x,y),x==ex-1);
 			}
+	else console.log("nono")
 
 	if(count==0)cb(this.absX,this.absY,this.getValue(this.absX,this.absY))
+	console.log("each selected",count)
 }
 
 deleteSelectionContent(c)
@@ -312,26 +322,26 @@ getCursorEl( )
 
 moveCursorUp(e)
 {
-	if(this.#cursorY<1&&this.#scrollY)return this.scrollUp();
-	this.setCursor(this.#cursorX,this.#cursorY-1,e);
+	if(this.cursorScreenY<1&&this.#scrollY)return this.scrollUp();
+	this.setCursor(this.cursorScreenX,this.cursorScreenY-1,e);
 }
 
 moveCursorDown(e)
 {
-	if(this.#cursorY>=this.#height-1)return this.scrollDown();
-	this.setCursor(this.#cursorX,this.#cursorY+1,e);
+	if(this.cursorScreenY>=this.#height-1)return this.scrollDown();
+	this.setCursor(this.cursorScreenX,this.cursorScreenY+1,e);
 }
 
 moveCursorLeft(e)
 {
-	if(this.#cursorX<1&&this.#scrollX)return this.scrollLeft();
-	this.setCursor(this.#cursorX-1,this.#cursorY,e);
+	if(this.cursorScreenX<1&&this.#scrollX)return this.scrollLeft();
+	this.setCursor(this.cursorScreenX-1,this.cursorScreenY,e);
 }
 
 moveCursorRight(e)
 {
-	if(this.#cursorX>=this.#width-1)return this.scrollRight();
-	this.setCursor(this.#cursorX+1,this.#cursorY,e);
+	if(this.cursorScreenX>=this.#width-1)return this.scrollRight();
+	this.setCursor(this.cursorScreenX+1,this.cursorScreenY,e);
 }
 
 scrollDown(num)
@@ -398,16 +408,18 @@ toTxt()
 	const separator="\t";
 	let str="";
 	let yy=-1;
-	this.forEachSelected((x,y,v)=>
+	this.forEachSelected((x,y,v,lastCol)=>
 	{
 		if(yy!=-1&&y>yy) str+="\n";
 
-		str=str+v+separator;
+		if(x>0)str+=separator;
+		str+=v;
+
 		yy=y;
 	});
 	console.log(str)
 
-	return str+"\n";
+	return str;
 }
 
 redrawData()
@@ -422,7 +434,6 @@ redrawData()
 
 	for(let y=this.#scrollY;y<this.#scrollY+this.#height;y++)
 	{
-
 		const eleRowHead=document.getElementsByClassName(this.cellRowHeadId(y))[0];
 		eleRowHead.innerHTML=y+this.#scrollY;
 
@@ -432,16 +443,15 @@ redrawData()
 			if(x<this.#dataWidth&& y<this.#dataHeight) elCell.value=this.#data[(x)+(y)*this.#dataWidth];
 			else elCell.value="";
 		}
-
 	}
 
 	this.updateSelection();
 	this.updateStatus();
-
 }
+
 updateStatus()
 {
-let str=""
+	let str="";
 	str+=(this.absX )+","+(this.absY);
 	str+=" | ";
 	str+=this.#dataWidth+"x"+this.#dataHeight;
@@ -506,9 +516,10 @@ html()
 			elInput.addEventListener("pointerdown",(e)=>
 			{
 				this.mouseDown=true;
-				this.#selectionStartX= parseInt(e.srcElement.dataset.x)+this.#scrollX;
-				this.#selectionStartY= parseInt(e.srcElement.dataset.y)+this.#scrollY;
-				this.setCursor(this.#selectionStartX,this.#selectionStartY)
+				this.unselectAll();
+				this.#selectionStartX=parseInt(e.srcElement.dataset.x)+this.#scrollX;
+				this.#selectionStartY=parseInt(e.srcElement.dataset.y)+this.#scrollY;
+				this.setCursorAbs(this.#selectionStartX,this.#selectionStartY)
 			});
 
 			elInput.addEventListener("pointerup",(e)=>
@@ -520,27 +531,27 @@ html()
 			{
 				if(this.mouseDown&&this.#selectionStartX!=-1)
 				{
-					this.#selectionEndX= parseInt(e.srcElement.dataset.x)+this.#scrollX;
-					this.#selectionEndY= parseInt(e.srcElement.dataset.y)+this.#scrollY;
-					this.updateStatus()
-					this.updateSelection()
+					this.#selectionEndX=parseInt(e.srcElement.dataset.x)+this.#scrollX;
+					this.#selectionEndY=parseInt(e.srcElement.dataset.y)+this.#scrollY;
+					this.updateStatus();
+					this.updateSelection();
 				}
 			});
 			elInput.addEventListener("wheel",(e)=>
 			{
-				if(e.deltaY>0)this.scrollDown(2)
-				else this.scrollUp(2)
+				if(e.deltaY>0)this.scrollDown(2);
+				else this.scrollUp(2);
 			});
 
 			elInput.addEventListener("input",(e)=>
 			{
-				const idx=parseInt(e.srcElement.dataset.x)+this.#dataWidth* parseInt(e.srcElement.dataset.y)
+				const idx=parseInt(e.srcElement.dataset.x)+this.#dataWidth* parseInt(e.srcElement.dataset.y);
 				this.#data[idx]=e.srcElement.value;
 			});
 
 			elCell.addEventListener("click",(e)=>
 			{
-				this.setCursor(parseInt(e.srcElement.dataset.x), parseInt(e.srcElement.dataset.y),e)
+				this.setCursor(parseInt(e.srcElement.dataset.x), parseInt(e.srcElement.dataset.y),e);
 			});
 
 			elInput.addEventListener("dblclick",(e)=>
@@ -558,18 +569,19 @@ html()
 	this.#elTable=elTable;
 	document.body.appendChild(elTable)
 
-	this.elStatus=document.createElement("div")
+	this.elStatus=document.createElement("div");
 	this.elStatus.classList.add("cellmateStatus");
 	document.body.appendChild(this.elStatus);
 
-	this.elNotify=document.createElement("div")
+	this.elNotify=document.createElement("div");
 	this.elNotify.classList.add("cellmateNotification");
 	document.body.appendChild(this.elNotify);
 
 	this.#elTable.addEventListener("copy",(e)=>
 	{
 		navigator.clipboard.writeText(this.toTxt());
-		this.notify("copy")
+
+		this.notify("copy");
 	});
 
 	this.#elTable.addEventListener("paste",(e)=>
@@ -598,7 +610,7 @@ html()
 			else
 			{
 				this.unFocusInput();
-				this.focusCell(this.#cursorX,this.#cursorY);
+				this.focusCell(this.cursorScreenX,this.cursorScreenY);
 			}
 		}
 		else if(!this.#elActiveInput && (e.key=="Delete"||e.key=="Backspace")) this.deleteSelectionContent();
@@ -611,7 +623,7 @@ html()
 		else
 			if(e.code && (e.code.startsWith("Digit") || e.code.startsWith("Key") ))
 			{
-				if(!this.#elActiveInput) this.focusCell(this.#cursorX,this.#cursorY);
+				if(!this.#elActiveInput) this.focusCell(this.cursorScreenX,this.cursorScreenY);
 			}
 			else console.log(e)
 
