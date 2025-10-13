@@ -35,6 +35,7 @@ body
 	}
 
 	.head{
+		user-select: none;
 		display: inline-block;
 		background-color: #151515;
 		text-align: center;
@@ -161,7 +162,7 @@ class CellMate
 		this.clearNotify=setTimeout(()=>
 		{
 			this.elNotify.innerHTML="";
-		},1000);
+		},3000);
 	}
 
 focusCell(x,y)
@@ -246,6 +247,36 @@ setEndSelection(x,y)
 	this.updateSelection();
 }
 
+selectRow(r,e)
+{
+	if(e && e.shiftKey)
+	{
+		this.setEndSelection(this.#dataWidth,Math.max(r,this.#selectionStartY));
+		this.startSelection(0,Math.min(r,this.#selectionStartY))
+	
+	}else
+	{
+		this.startSelection(0,r)
+		this.setEndSelection(this.#dataWidth,r)
+	}
+	this.updateSelection()
+}
+
+selectCol(col,e)
+{
+	if(e && e.shiftKey)
+	{
+		this.setEndSelection(Math.max(col,this.#selectionStartX),this.#dataHeight);
+		this.startSelection(Math.min(col,this.#selectionStartX),0)
+	
+	}else
+	{
+		this.startSelection(col,0)
+		this.setEndSelection(col,this.#dataHeight);
+	}
+	this.updateSelection()
+}
+
 unselectAll()
 {
 	let eles=this.#elTable.getElementsByClassName("selected")
@@ -282,14 +313,17 @@ forEachSelected(cb)
 			}
 	else console.log("nono")
 
-	if(count==0)cb(this.absX,this.absY,this.getValue(this.absX,this.absY))
-	console.log("each selected",count)
+	if(count==0){
+		cb(this.absX,this.absY,this.getValue(this.absX,this.absY))
+		count++
+	}
+	this.lastSelectedForeachCount=count
+	return count
 }
 
 deleteSelectionContent(c)
 {
 	this.forEachSelected((x,y,v)=>{
-		console.log("xy",x,y)
 		this.setValue(x,y,"")
 	})
 	this.redrawData()
@@ -307,19 +341,21 @@ updateSelection()
 
 	for(let absy=sy;absy<=ey;absy++)
 	{
+		if(absy-this.#scrollY>this.#height)continue;
+
 		const eleRowHead=document.getElementsByClassName(this.cellRowHeadId(absy))
 		if(eleRowHead[0])eleRowHead[0].classList.add("selected")
 
 		for(let absx=sx;absx<=ex;absx++)
 		{
-			if(absy==sy)
-			{
-				const eleColHead=document.getElementsByClassName(this.cellColHeadId(absx))
-				if(eleColHead[0])eleColHead[0].classList.add("selected")
-			}
+				if(absy==sy)
+				{
+					const eleColHead=document.getElementsByClassName(this.cellColHeadId(absx))
+					if(eleColHead[0])eleColHead[0].classList.add("selected")
+				}
 
-			const ele=document.getElementById(this.cellId(absx,absy))
-			ele?.classList.add("selected")
+				const ele=document.getElementById(this.cellId(absx,absy))
+				ele?.classList.add("selected")
 		}
 	}
 }
@@ -504,6 +540,7 @@ html()
 	const elRow=document.createElement("div")
 	elRow.classList.add("row");
 	elTable.appendChild(elRow);
+
 	for(let x=0;x<this.#width+1;x++)
 	{
 		const elColHead=document.createElement("div")
@@ -512,10 +549,15 @@ html()
 		elColHead.dataset.idx=x;
 		elRow.appendChild(elColHead);
 		if(x) elColHead.innerHTML=x;
-		elColHead.addEventListener("click",(e)=>{
+
+		elColHead.addEventListener("dblclick",(e)=>{
 			const t=prompt("title");
 			this.#colTitles[parseInt(e.srcElement.dataset.x)];
 			e.srcElement.innerHTML=t;		
+		});
+		const col=x;
+		elColHead.addEventListener("click",(e)=>{
+			this.selectCol(col-1,e)
 		});
 	}
 
@@ -530,7 +572,10 @@ html()
 		elRowHead.classList.add("rowHead"+y)
 		elRow.appendChild(elRowHead)
 		elRowHead.innerHTML=y;
-
+		const row=y
+		elRowHead.addEventListener("click",(e)=>{
+			this.selectRow(row,e);
+		});
 		for(let x=0;x<this.#width;x++)
 		{
 			const elCell=document.createElement("div")
@@ -627,7 +672,7 @@ html()
 	{
 		navigator.clipboard.writeText(this.toTxt());
 
-		this.notify("copy");
+		this.notify("copied "+this.lastSelectedForeachCount+" entries");
 	});
 
 	this.#elTable.addEventListener("paste",(e)=>
@@ -639,7 +684,6 @@ html()
             return;
         }
         let str = e.clipboardData.getData("text/plain");
-		console.log(str);
 		this.fromTxt(str);
 		e.preventDefault();
 	});
