@@ -8,13 +8,17 @@ body
 	background-color: #000;
 	color:#ccc
 }
+.cellmateNotification
+{
+	float:right;
+}
 
 .cellmateStatus
 {
 	font-family: monospace;
 	background-color: #151515;
 	padding: 5px;
-		outline: 1px solid #555;
+	outline: 1px solid #555;
 }
 
 .table
@@ -120,20 +124,45 @@ class CellMate
 		this.html();
 		this.setCursor(this.#cursorX,this.#cursorY);
 	}
+	get absX()
+	{
+		return this.#cursorX+this.#scrollX
+	}
+	get absY()
+	{
+		return this.#cursorY+this.#scrollY
+	}
 
-cellId(x,y)
-{
-	return "cell"+x+"_"+y;	
-}
+	cellId(x,y)
+	{
+		return "cell"+(x-this.#scrollX)+"_"+(y-this.#scrollY);	
+	}
+	cellRowHeadId(y)
+	{
+		return "rowHead"+(y-this.#scrollY);	
+	}
+	cellColHeadId(x)
+	{
+		return "colHead"+(x-this.#scrollX);	
+	}
 
-clampCursor()
-{
-	this.#cursorX=Math.max(0,this.#cursorX)
-	this.#cursorY=Math.max(0,this.#cursorY)
+	clampCursor()
+	{
+		this.#cursorX=Math.max(0,this.#cursorX)
+		this.#cursorY=Math.max(0,this.#cursorY)
 
-	this.#cursorX=Math.min(this.#width-1,this.#cursorX)
-	this.#cursorY=Math.min(this.#height-1,this.#cursorY)
-}
+		this.#cursorX=Math.min(this.#width-1,this.#cursorX)
+		this.#cursorY=Math.min(this.#height-1,this.#cursorY)
+	}
+	notify(t)
+	{
+		clearTimeout(this.clearTimeout);
+		this.elNotify.innerHTML=t;
+		this.clearNotify=setTimeout(()=>
+		{
+			this.elNotify.innerHTML="";
+		},1000);
+	}
 
 focusCell(x,y)
 {
@@ -157,7 +186,7 @@ unFocusInput()
 setCursor(x,y,e)
 {
 	if(e&&!e.shiftKey&&this.#selectionEndX!=-1)this.unselectAll();
-	if(e&&e.shiftKey&&this.#selectionStartX==-1)this.startSelection(this.#cursorX,this.#cursorY);
+	if(e&&e.shiftKey&&this.#selectionStartX==-1)this.startSelection(this.absX,this.absY);
 	else{
 		document.getElementsByClassName("rowHead"+this.#cursorY)[0]?.classList.remove("selected");
 		document.getElementsByClassName("colHead"+this.#cursorX)[0]?.classList.remove("selected");
@@ -236,13 +265,13 @@ forEachSelected(cb)
 				cb(x,y,this.getValue(x,y));
 			}
 
-	if(count==0)cb(this.#cursorX,this.#cursorY,this.getValue(this.#cursorX,this.#cursorY))
+	if(count==0)cb(this.absX,this.absY,this.getValue(this.absX,this.absY))
 }
 
 deleteSelectionContent(c)
 {
 	this.forEachSelected((x,y,v)=>{
-		const elCell=	document.getElementById(this.cellId(x,y))
+		const elCell=document.getElementById(this.cellId(x,y))
 		if(elCell) elCell.value=""
 	})
 }
@@ -257,20 +286,20 @@ updateSelection()
 	const ex=Math.max(this.#selectionStartX,this.#selectionEndX)
 	const ey=Math.max(this.#selectionStartY,this.#selectionEndY)
 
-	for(let y=sy;y<=ey;y++)
+	for(let absy=sy;absy<=ey;absy++)
 	{
-		const eleRowHead=document.getElementsByClassName("rowHead"+y)
+		const eleRowHead=document.getElementsByClassName(this.cellRowHeadId(absy))
 		if(eleRowHead[0])eleRowHead[0].classList.add("selected")
 
-		for(let x=sx;x<=ex;x++)
+		for(let absx=sx;absx<=ex;absx++)
 		{
-			if(y==sy)
+			if(absy==sy)
 			{
-				const eleColHead=document.getElementsByClassName("colHead"+x)
+				const eleColHead=document.getElementsByClassName(this.cellColHeadId(absx))
 				if(eleColHead[0])eleColHead[0].classList.add("selected")
 			}
 
-			const ele=document.getElementById(this.cellId(x,y))
+			const ele=document.getElementById(this.cellId(absx,absy))
 			ele?.classList.add("selected")
 		}
 	}
@@ -278,7 +307,7 @@ updateSelection()
 
 getCursorEl( )
 {
-	return document.getElementById(this.cellId(this.#cursorX,this.#cursorY));
+	return document.getElementById(this.cellId(this.absX,this.absY));
 }
 
 moveCursorUp(e)
@@ -359,7 +388,8 @@ fromTxt(txt,x,y)
 		const cols=rows[i].split(separator);
 
 		for(let j=0;j<cols.length;j++)
-			this.setValue(this.#cursorX+j,this.#cursorY+i,cols[j])
+		if(cols[j]!=undefined&&cols[j]!=null)
+			this.setValue(this.absX+j,this.absY+i,cols[j])
 	}
 }
 
@@ -375,6 +405,7 @@ toTxt()
 		str=str+v+separator;
 		yy=y;
 	});
+	console.log(str)
 
 	return str+"\n";
 }
@@ -383,37 +414,44 @@ redrawData()
 {
 	for(let x=0;x<this.#width;x++)
 	{
-		const head=document.getElementsByClassName("colHead"+x)[0];
+		const head=document.getElementsByClassName(this.cellColHeadId(x))[0];
 		let s=String(x+this.#scrollX);
 		if(this.#colTitles[x+this.#scrollX]) s+=":" +this.#colTitles[x+this.#scrollX];
 		head.innerHTML=s;
 	}
 
-	for(let y=0;y<this.#height;y++)
+	for(let y=this.#scrollY;y<this.#scrollY+this.#height;y++)
 	{
 
-		const eleRowHead=document.getElementsByClassName("rowHead"+y)[0];
+		const eleRowHead=document.getElementsByClassName(this.cellRowHeadId(y))[0];
 		eleRowHead.innerHTML=y+this.#scrollY;
 
-		for(let x=0;x<this.#width;x++)
+		for(let x=this.#scrollX;x<this.#width+this.#scrollX;x++)
 		{
 			const elCell=document.getElementById(this.cellId(x,y));
-			if(x+this.#scrollX<this.#dataWidth&& y+this.#scrollY<this.#dataHeight)
-				elCell.value=this.#data[(x+this.#scrollX)+(y+this.#scrollY)*this.#dataWidth];
+			if(x<this.#dataWidth&& y<this.#dataHeight) elCell.value=this.#data[(x)+(y)*this.#dataWidth];
 			else elCell.value="";
 		}
 
 	}
+
+	this.updateSelection();
 	this.updateStatus();
 
 }
 updateStatus()
 {
 let str=""
-	str+=(this.#cursorX+this.#scrollX )+","+(this.#cursorY+this.#scrollY);
+	str+=(this.absX )+","+(this.absY);
 	str+=" | ";
 	str+=this.#dataWidth+"x"+this.#dataHeight;
-
+	if(this.#selectionStartX>-1)
+	{
+		str+=" | ";
+		str+=this.#selectionStartX+","+this.#selectionStartY;
+		str+=" - ";
+		str+=this.#selectionEndX+","+this.#selectionEndY;
+	}
 	this.elStatus.innerHTML=str;
 }
 
@@ -468,8 +506,8 @@ html()
 			elInput.addEventListener("pointerdown",(e)=>
 			{
 				this.mouseDown=true;
-				this.#selectionStartX= parseInt(e.srcElement.dataset.x);
-				this.#selectionStartY= parseInt(e.srcElement.dataset.y);
+				this.#selectionStartX= parseInt(e.srcElement.dataset.x)+this.#scrollX;
+				this.#selectionStartY= parseInt(e.srcElement.dataset.y)+this.#scrollY;
 				this.setCursor(this.#selectionStartX,this.#selectionStartY)
 			});
 
@@ -482,8 +520,9 @@ html()
 			{
 				if(this.mouseDown&&this.#selectionStartX!=-1)
 				{
-					this.#selectionEndX= parseInt(e.srcElement.dataset.x);
-					this.#selectionEndY= parseInt(e.srcElement.dataset.y);
+					this.#selectionEndX= parseInt(e.srcElement.dataset.x)+this.#scrollX;
+					this.#selectionEndY= parseInt(e.srcElement.dataset.y)+this.#scrollY;
+					this.updateStatus()
 					this.updateSelection()
 				}
 			});
@@ -523,9 +562,14 @@ html()
 	this.elStatus.classList.add("cellmateStatus");
 	document.body.appendChild(this.elStatus);
 
+	this.elNotify=document.createElement("div")
+	this.elNotify.classList.add("cellmateNotification");
+	document.body.appendChild(this.elNotify);
+
 	this.#elTable.addEventListener("copy",(e)=>
 	{
 		navigator.clipboard.writeText(this.toTxt());
+		this.notify("copy")
 	});
 
 	this.#elTable.addEventListener("paste",(e)=>
