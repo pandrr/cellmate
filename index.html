@@ -27,11 +27,10 @@ body
 
 	font-family: monospace;
 	display: grid;
-	grid-template-rows: repeat(11,1fr);
 	
 	.row{
 		display: grid;
-		grid-template-columns: repeat(11,1fr);
+		grid-template-columns: repeat(5,100px);
 	}
 
 	.head{
@@ -92,11 +91,17 @@ body
 </style>
 </head>
 <body>
+
+
+
+
+ 
 <script>
 
 class CellMate
 {
-	#width=10;
+	cellWidth=100;
+	#width=-1;
 	#height=30;
 	#data=[];
 	#dataWidth=5;
@@ -105,7 +110,7 @@ class CellMate
 	cursorScreenX=0;
 	cursorScreenY=0;
 
-	#elTable=null;
+	#elTable=null;;
 	#elActiveInput=null;
 
 	#selectionStartX=-1
@@ -115,14 +120,18 @@ class CellMate
 	#colTitles=[];
 	#scrollY=0;
 	#scrollX=0;
+	#elContainer=null;
 
-	constructor()
+	constructor(container)
 	{
 		this.#data.length=this.#dataWidth*this.#dataHeight;
 		for(let i=0;i<this.#dataWidth*this.#dataHeight;i++)
 			this.#data[i]=Math.random();
 
+console.log("containe",container)
+this.#elContainer=container;
 		this.html();
+this.resize();
 		this.setCursor(this.cursorScreenX,this.cursorScreenY);
 	}
 	get absX()
@@ -232,6 +241,8 @@ setCursorAbs(x,y,e)
 		document.getElementsByClassName("colHead"+this.cursorScreenX)[0]?.classList.add("selected");
 	}
 	this.updateStatus();
+	        cursorEl.scrollIntoView();
+
 }
 
 startSelection(x,y)
@@ -369,24 +380,29 @@ moveCursorUp(e)
 {
 	if(this.cursorScreenY<1&&this.#scrollY)return this.scrollUp();
 	this.setCursor(this.cursorScreenX,this.cursorScreenY-1,e);
+	if(e)e.preventDefault();
+
 }
 
 moveCursorDown(e)
 {
 	if(this.cursorScreenY>=this.#height-1)return this.scrollDown();
 	this.setCursor(this.cursorScreenX,this.cursorScreenY+1,e);
+	if(e)e.preventDefault();
 }
 
 moveCursorLeft(e)
 {
 	if(this.cursorScreenX<1&&this.#scrollX)return this.scrollLeft();
 	this.setCursor(this.cursorScreenX-1,this.cursorScreenY,e);
+	if(e)e.preventDefault();
 }
 
 moveCursorRight(e)
 {
 	if(this.cursorScreenX>=this.#width-1)return this.scrollRight();
 	this.setCursor(this.cursorScreenX+1,this.cursorScreenY,e);
+	if(e)e.preventDefault();
 }
 
 scrollUp()
@@ -420,6 +436,26 @@ moveY(num)
 	}
 }
 
+resize()
+{
+	const colNum=Math.floor(this.#elContainer.clientWidth/this.cellWidth)-1;
+	const rowNum=Math.floor(this.#elContainer.clientHeight/22)-2;
+
+	if(this.#width!=colNum||this.#height!=rowNum)
+	{
+		this.#width=colNum;
+		this.#height=rowNum;
+		this.html()
+		const rows=this.#elTable.getElementsByClassName("row")
+
+		for(let i=0;i<rows.length;i++)
+		{
+			rows[i].style["grid-template-columns"]="repeat("+(this.#width+1)+","+this.cellWidth+"px)"
+			console.log("repeat("+this.#width+","+this.cellWidth+"px)");
+		}
+	}
+}
+
 resizeData(w,h)
 {
 	const newData=[]
@@ -434,10 +470,12 @@ resizeData(w,h)
 			}
 		}
 	}
+
 	this.#data=newData;
 	this.#dataWidth=w;
 	this.#dataHeight=h;
 	console.log("resize to ",w,h)
+	resize()
 }
 
 setValue(x,y,v)
@@ -493,6 +531,7 @@ redrawData()
 	for(let x=0;x<this.#width;x++)
 	{
 		const head=document.getElementsByClassName(this.cellColHeadId(x))[0];
+		if(!head)continue;
 		let s=String(x+this.#scrollX);
 		if(this.#colTitles[x+this.#scrollX]) s+=":" +this.#colTitles[x+this.#scrollX];
 		head.innerHTML=s;
@@ -533,6 +572,8 @@ updateStatus()
 
 html()
 {
+	this.#elContainer.innerHTML=""
+
 	const elTable=document.createElement("div")
 	elTable.classList.add("table")
 	elTable.setAttribute("tabindex",1);
@@ -658,15 +699,15 @@ html()
 	}
 
 	this.#elTable=elTable;
-	document.body.appendChild(elTable)
+	this.#elContainer.appendChild(elTable)
 
 	this.elStatus=document.createElement("div");
 	this.elStatus.classList.add("cellmateStatus");
-	document.body.appendChild(this.elStatus);
+	this.#elContainer.appendChild(this.elStatus);
 
 	this.elNotify=document.createElement("div");
 	this.elNotify.classList.add("cellmateNotification");
-	document.body.appendChild(this.elNotify);
+	this.#elContainer.appendChild(this.elNotify);
 
 	this.#elTable.addEventListener("copy",(e)=>
 	{
@@ -722,11 +763,16 @@ html()
 }
 	
 }
+let cm=null
+addEventListener("resize", (event) => { if(cm)cm.resize();})
 
-
-
-new CellMate()
+addEventListener("DOMContentLoaded", (event) => {
+cm=new CellMate(document.getElementById("container"));
+ })
 
 </script>
+
+<div id="container" style="width:100%;height: 100%;"></div>
+
 </body>
 </html>
