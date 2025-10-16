@@ -1,7 +1,8 @@
 <html>
 <head>
 
-<link rel="stylesheet" href="cellmate.css">
+<link rel="stylesheet" href="cellmate.css"/>
+<script src="cellmate.js"></script>
 <style>
 
 body {
@@ -12,18 +13,16 @@ body {
 </head>
 <body>
 
-
-
-
- 
 <script>
 
 let cm=null
-addEventListener("resize", (event) => { if(cm)cm.resize();})
+addEventListener("resize", (event) => {
+	if(cm)cm.resize();
+});
 
 addEventListener("DOMContentLoaded", (event) => {
-cm=new CellMate(document.getElementById("container"));
- })
+	cm=new CellMate(document.getElementById("container"));
+});
 
 </script>
 

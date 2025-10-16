@@ -8,10 +8,10 @@ module.exports = [
   
     output: {
       path: path.resolve(__dirname, 'dist'),
-      filename: 'colorrick.min.js',
+      filename: 'cellmate.min.js',
   
       library: {
-        name: 'ColorRick',
+        name: 'CellMate',
         type: 'umd',
       },
     },
@@ -21,10 +21,10 @@ module.exports = [
   
     output: {
       path: path.resolve(__dirname, 'dist'),
-      filename: 'colorrick.js',
+      filename: 'cellmate.js',
   
       library: {
-        name: 'ColorRick',
+        name: 'CellMate',
         type: 'umd',
       },
     },

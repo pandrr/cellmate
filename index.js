@@ -1,4 +1,6 @@
 
+console.log("cellmate yay")
+
 class CellMate
 {
 	cellWidth=100;
@@ -666,3 +668,5 @@ class CellMate
 	}
 	
 }
+
+module.exports=CellMate;
