@@ -20,7 +20,7 @@ class CellMate
 	#selectionStartY=-1
 	#selectionEndX=-1
 	#selectionEndY=-1
-	#colTitles=[];
+	#colTitles=["a","b"];
 	#scrollY=0;
 	#scrollX=0;
 	#elContainer=null;
@@ -39,6 +39,10 @@ class CellMate
 		this.html();
 		this.resize();
 		this.setCursor(this.cursorScreenX,this.cursorScreenY);
+
+
+
+		console.log(this.toJson(true))
 	}
 	get absX()
 	{
@@ -411,6 +415,23 @@ class CellMate
 				this.setValue(this.absX+j,this.absY+i,cols[j])
 		}
 	}
+	toJson()
+	{
+		const arr=[]
+
+			for(let y=0;y<this.#dataHeight;y++)
+			{
+				const json={};
+				for(let x=0;x<this.#dataWidth;x++)
+				{
+					const title=this.#colTitles[x]||String(x);
+					json[title]=this.getValue(x,y);
+				}
+				arr.push(json);
+			}
+			return arr
+	}
+
 	toArray(multiple )
 	{
 		if(multiple)
@@ -512,13 +533,15 @@ class CellMate
 			elColHead.classList.add("head");
 			if(x>0)elColHead.classList.add("colHead"+(x-1));
 			elColHead.dataset.idx=x;
+			if(x>0)elColHead.dataset.x=x-1;
 			elRow.appendChild(elColHead);
 			if(x) elColHead.innerHTML=x;
 
 			elColHead.addEventListener("dblclick",(e)=>{
 				const t=prompt("title");
-				this.#colTitles[parseInt(e.srcElement.dataset.x)];
-				e.srcElement.innerHTML=t;		
+				this.#colTitles[parseInt(e.srcElement.dataset.x)]=t;
+				this.redrawData();
+				console.log(this.#colTitles)
 			});
 			const col=x;
 			elColHead.addEventListener("click",(e)=>{
