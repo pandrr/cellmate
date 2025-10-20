@@ -8,7 +8,7 @@ class CellMate
 	#height=30;
 	#data=[];
 	#dataWidth=5;
-	#dataHeight=999100;
+	#dataHeight=99;
 
 	cursorScreenX=0;
 	cursorScreenY=0;
@@ -42,7 +42,8 @@ class CellMate
 
 
 
-		console.log(this.toJson(true))
+		this.download("bla.csv",this.toCsv())
+		// console.log(this.toCsv())
 	}
 	get absX()
 	{
@@ -415,6 +416,39 @@ class CellMate
 				this.setValue(this.absX+j,this.absY+i,cols[j])
 		}
 	}
+
+	toCsv()
+	{
+			let str=""
+
+			for(let y=0;y<this.#dataHeight;y++)
+			{
+				for(let x=0;x<this.#dataWidth;x++)
+				{
+
+					str+=this.getValue(x,y);
+					if(x<this.#dataWidth-1)str+=";"
+					
+				}
+				str+="\n"
+			}
+		return str
+	}
+
+	download(filename,str)
+	{
+	  var element = document.createElement('a');
+	  element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(str));
+	  element.setAttribute('download', filename);
+
+	  element.style.display = 'none';
+	  document.body.appendChild(element);
+
+	  element.click();
+
+	  document.body.removeChild(element);
+	}		
+	
 	toJson()
 	{
 		const arr=[]
