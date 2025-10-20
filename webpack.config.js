@@ -2,6 +2,7 @@ const path = require('path');
 
 module.exports = [
   {
+    watch:true,
     entry: './index.js',
     mode: 'production',
     devtool: 'source-map',

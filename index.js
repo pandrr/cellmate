@@ -34,6 +34,7 @@ class CellMate
 
 		console.log("containe",container)
 
+
 		this.#elContainer=container;
 		this.html();
 		this.resize();
@@ -146,8 +147,7 @@ class CellMate
 			document.getElementsByClassName("colHead"+this.cursorScreenX)[0]?.classList.add("selected");
 		}
 		this.updateStatus();
-		        cursorEl.scrollIntoView();
-
+    cursorEl?.scrollIntoView();
 	}
 
 	startSelection(x,y)
@@ -410,6 +410,25 @@ class CellMate
 			if(cols[j]!=undefined&&cols[j]!=null)
 				this.setValue(this.absX+j,this.absY+i,cols[j])
 		}
+	}
+	toArray(multiple )
+	{
+		if(multiple)
+		{
+			const arr=[]
+			for(let x=0;x<this.#dataWidth;x++) arr[x]=[]
+
+			for(let x=0;x<this.#dataWidth;x++)
+				for(let y=0;y<this.#dataHeight;y++)
+					arr[x][y]=this.getValue(x,y)
+				
+			return arr;
+		
+		}
+		else{
+			return structuredClone(this.#data)
+		}
+		
 	}
 
 	toTxt()
