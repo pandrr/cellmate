@@ -1,5 +1,4 @@
-
-console.log("cellmate yay")
+console.log("cellmate 7")
 
 class CellMate
 {
@@ -40,9 +39,7 @@ class CellMate
 		this.resize();
 		this.setCursor(this.cursorScreenX,this.cursorScreenY);
 
-
-
-		this.download("bla.csv",this.toCsv())
+		// this.download("bla.csv",this.toCsv(true))
 		// console.log(this.toCsv())
 	}
 	get absX()
@@ -417,9 +414,20 @@ class CellMate
 		}
 	}
 
-	toCsv()
+	toCsv(includeHead=true)
 	{
 			let str=""
+			const separator=";"
+			if(includeHead)
+			{
+				for(let x=0;x<this.#dataWidth;x++)
+				{
+					str+=this.#colTitles[x]||x
+					if(x<this.#dataWidth-1)str+=separator
+				}
+
+				str+="\n"
+			}
 
 			for(let y=0;y<this.#dataHeight;y++)
 			{
@@ -427,7 +435,7 @@ class CellMate
 				{
 
 					str+=this.getValue(x,y);
-					if(x<this.#dataWidth-1)str+=";"
+					if(x<this.#dataWidth-1)str+=separator
 					
 				}
 				str+="\n"
@@ -524,7 +532,8 @@ class CellMate
 			for(let x=this.#scrollX;x<this.#width+this.#scrollX;x++)
 			{
 				const elCell=document.getElementById(this.cellId(x,y));
-				if(x<this.#dataWidth&& y<this.#dataHeight) elCell.value=this.#data[(x)+(y)*this.#dataWidth];
+				if(!elCell){console.log("cell not found");contiune}
+				if(elCell&& x<this.#dataWidth&& y<this.#dataHeight) elCell.value=this.#data[(x)+(y)*this.#dataWidth];
 				else elCell.value="";
 			}
 		}
