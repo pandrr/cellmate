@@ -231,7 +231,7 @@ class CellMate
 				for(let x=sx;x<=ex;x++)
 				{
 					count++;
-					cb(x,y,this.getValue(x,y),x==ex-1);
+					cb(x,y,this.getValue(x,y),x-sx,y+sy);
 				}
 		else console.log("nono")
 
@@ -592,11 +592,11 @@ class CellMate
 		const separator="\t";
 		let str="";
 		let yy=-1;
-		this.forEachSelected((x,y,v,lastCol)=>
+		this.forEachSelected((x,y,v,xrel,yrel)=>
 		{
 			if(yy!=-1&&y>yy) str+="\n";
 
-			if(x>0)str+=separator;
+			if(xrel>0)str+=separator;
 			str+=v;
 
 			yy=y;
@@ -834,13 +834,14 @@ class CellMate
 
 		this.#elTable.addEventListener("paste",(e)=>
 		{
-	        this.isPasting = true;
-	        if (e.clipboardData.types.indexOf("text/plain") == -1)
-	        {
-	            console.log("Paste failed",e.clipboardData.types);
-	            return;
-	        }
-	        let str = e.clipboardData.getData("text/plain");
+      this.isPasting = true;
+      if (e.clipboardData.types.indexOf("text/plain") == -1)
+      {
+          console.log("Paste failed",e.clipboardData.types);
+          return;
+      }
+      let str = e.clipboardData.getData("text/plain");
+
 			this.fromTxt(str);
 			e.preventDefault();
 		});
