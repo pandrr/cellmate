@@ -1,7 +1,13 @@
 
+/**
+ * @typedef CellMateOptions
+ * @property  {UndoManager} [undo] undo manager
+ * @property  {HTMLElement} container element,cellmate will inject itself into this element
+ */
+
 let countInst=0
 
-console.log("cellmate 34")
+
 class CellMate
 {
 	#rowHeight=22
@@ -875,7 +881,17 @@ const		oldValue=this.getValue(x,y);
 
 				elInput.addEventListener("input",(e)=>
 				{
-					this.setValue(this.absX,this.absY,e.srcElement.value)
+				  if (this.#options.undo&& (e.ctrlKey || e.metaKey) && e.key === "z")
+				  {
+				  	e.preventDefault()
+				  	elInput.blur()
+				  	if(event.shiftKey) this.#options.undo.redo();
+				  	else this.#options.undo.undo();
+				  }
+				  else
+				  {
+	 					this.setValue(this.absX,this.absY,e.srcElement.value)
+				  }
 				});
 
 				elInput.addEventListener("blur",(e)=>
@@ -942,6 +958,13 @@ const		oldValue=this.getValue(x,y);
 
 		this.#elTable.addEventListener("keydown",(e)=>
 		{
+		  if (this.#options.undo&& (e.ctrlKey || e.metaKey) && e.key === "z")
+		  {
+		  	e.preventDefault()
+		  	if(event.shiftKey) this.#options.undo.redo();
+		  	else this.#options.undo.undo();
+		  }
+		  else
 			if(e.key=="Enter")
 			{
 				if(this.#elActiveInput)
@@ -968,8 +991,9 @@ const		oldValue=this.getValue(x,y);
 				{
 					if(!this.#elActiveInput) this.focusCell(this.cursorScreenX,this.cursorScreenY);
 				}
-				else {
-					console.log(e)
+				else
+				{
+					console.log(e);
 				}
 
 		});
@@ -980,8 +1004,7 @@ const		oldValue=this.getValue(x,y);
 	{
 		this.#elTable.remove()
 		this.#elTable=null;
-		this.#data=null
-		
+		this.#data=null;
 	}
 	
 }
