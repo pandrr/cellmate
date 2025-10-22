@@ -445,6 +445,8 @@ updateScrollBarsSoon()
 
 	setValue(x,y,v)
 	{
+const		oldValue=this.getValue(x,y);
+
 		if(x>=this.#dataWidth) this.resizeData(Math.max(x+1,this.#dataWidth-1),this.#dataHeight)
 			else if( y>=this.#dataHeight) this.resizeData(this.#dataWidth,Math.max(y+1,this.#dataHeight-1))
 
@@ -461,6 +463,28 @@ updateScrollBarsSoon()
 
 		// setTimeout( this.removeEmptyRowCols.bind(this),300);
 		if(this.#options.onChange)this.#options.onChange()
+
+		if(this.#options.undo)
+		{
+			console.log("add undo")
+			const that=this;
+			const data=this.#data
+      this.#options.undo.add({
+          "title": "setvalue",
+          undo()
+          {
+						console.log("undo",idx,oldValue)
+						data[idx]=oldValue;
+						that.redrawData()
+          },
+          redo()
+          {
+							data[idx]=v;
+							that.redrawData()
+          }
+      });
+			
+		}
 	}
 
 	lastRowEmpty()
