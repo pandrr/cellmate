@@ -2,10 +2,11 @@
 <head>
 
 <link rel="stylesheet" href="cellmate.css"/>
-<script type="module">
-import {CellMate} from "./cellmate.js";
-console.log(c)
-</script>
+    <script src="cellmate.cjs"></script>
+    <script type="module">
+        import {CellMate as M} from "./cellmate.js";
+        window.M = M;
+    </script>
 <style>
 
 body {
@@ -24,7 +25,11 @@ addEventListener("resize", (event) => {
 });
 
 addEventListener("DOMContentLoaded", (event) => {
-	cm=new CellMate(document.getElementById("container"));
+    esm= new M(document.getElementById("container"));
+    console.log("ESM", esm);
+    cm=new CellMate(document.getElementById("container"));
+    console.log("CJS", cm);
+
 });
 
 </script>

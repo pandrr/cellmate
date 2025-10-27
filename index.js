@@ -1,11 +1,10 @@
-
 /**
  * @typedef CellMateOptions
  * @property  {UndoManager} [undo] undo manager
  * @property  {HTMLElement} container element,cellmate will inject itself into this element
  */
- console.log("cellmate 8")
 
+console.log("cellmate 8")
 
 let countInst=0
 
@@ -64,6 +63,7 @@ export class CellMate
 
 		// this.download("bla.csv",this.toCsv(true))
 		// console.log(this.toCsv())
+
 	}
 	get absX()
 	{
@@ -76,15 +76,15 @@ export class CellMate
 
 	cellId(x,y)
 	{
-		return "cell"+this.countInst+"_"+(x-this.#scrollX)+"_"+(y-this.#scrollY);	
+		return "cell"+this.countInst+"_"+(x-this.#scrollX)+"_"+(y-this.#scrollY);
 	}
 	cellRowHeadId(y)
 	{
-		return "rowHead"+this.countInst+"_"+(y-this.#scrollY);	
+		return "rowHead"+this.countInst+"_"+(y-this.#scrollY);
 	}
 	cellColHeadId(x)
 	{
-		return "colHead"+this.countInst+"_"+(x-this.#scrollX);	
+		return "colHead"+this.countInst+"_"+(x-this.#scrollX);
 	}
 
 	clampCursor()
@@ -192,7 +192,7 @@ export class CellMate
 		{
 			this.setEndSelection(this.#dataWidth,Math.max(r,this.#selectionStartY));
 			this.startSelection(0,Math.min(r,this.#selectionStartY))
-	
+
 		}else
 		{
 			this.startSelection(0,r)
@@ -207,7 +207,7 @@ export class CellMate
 		{
 			this.setEndSelection(Math.max(col,this.#selectionStartX),this.#dataHeight);
 			this.startSelection(Math.min(col,this.#selectionStartX),0)
-	
+
 		}else
 		{
 			this.startSelection(col,0)
@@ -374,8 +374,8 @@ export class CellMate
 	}
 
 redrawDataSoon(){
-	
-		clearTimeout(this.#redrawTimeout) 
+
+		clearTimeout(this.#redrawTimeout)
 		this.#redrawTimeout=setTimeout(()=>
 			{
 				this.redrawData();
@@ -383,7 +383,7 @@ redrawDataSoon(){
 }
 updateScrollBarsSoon()
 	{
-		clearTimeout(this.#scrollTimeOut) 
+		clearTimeout(this.#scrollTimeOut)
 		this.#scrollTimeOut=setTimeout(()=>
 			{
 				this.updateScrollBars();
@@ -492,7 +492,7 @@ updateScrollBarsSoon()
 							that.redrawData()
           }
       });
-			
+
 		}
 	}
 
@@ -533,7 +533,7 @@ updateScrollBarsSoon()
 			if(this.#options.onChange)this.#options.onChange()
 			this.redrawDataArea()
 			this.redrawData()
-			
+
 		}
 	}
 
@@ -557,7 +557,7 @@ updateScrollBarsSoon()
 		this.updateStatus();
 		this.redrawData();
 	}
-	
+
 	toObj()
 	{
 		return{
@@ -566,7 +566,7 @@ updateScrollBarsSoon()
 			"width":this.#dataWidth,
 			"height":this.#dataHeight
 		}
-		
+
 	}
 
 	fromTxt(txt,x,y)
@@ -606,7 +606,7 @@ updateScrollBarsSoon()
 
 					str+=this.getValue(x,y);
 					if(x<this.#dataWidth-1)str+=separator
-					
+
 				}
 				str+="\n"
 			}
@@ -625,8 +625,8 @@ updateScrollBarsSoon()
 	  element.click();
 
 	  document.body.removeChild(element);
-	}		
-	
+	}
+
 	toJson()
 	{
 		const arr=[]
@@ -655,14 +655,14 @@ updateScrollBarsSoon()
 				for(let y=0;y<this.#dataHeight;y++)
 					arr[x][y]=this.getValue(x,y)
 
-				
+
 			return arr;
-		
+
 		}
 		else{
 			return structuredClone(this.#data)
 		}
-		
+
 	}
 
 	toTxt()
@@ -686,7 +686,7 @@ updateScrollBarsSoon()
 
 	redrawDataArea()
 	{
-		
+
 		for(let y=this.#scrollY;y<this.#scrollY+this.#height;y++)
 			for(let x=this.#scrollX;x<this.#width+this.#scrollX;x++)
 			{
@@ -918,7 +918,7 @@ updateScrollBarsSoon()
 
 				elInput.addEventListener("keydown",(e)=>
 				{
-	
+
 				});
 			}
 		}
@@ -1012,7 +1012,7 @@ updateScrollBarsSoon()
 		this.#elTable=null;
 		this.#data=null;
 	}
-	
+
 }
 
 

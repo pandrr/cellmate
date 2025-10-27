@@ -1,39 +1,88 @@
-/******/ (() => { // webpackBootstrap
-/******/ 	"use strict";
-/******/ 	// The require scope
-/******/ 	var __webpack_require__ = {};
-/******/ 	
+/******/ var __webpack_modules__ = ({
+
+/***/ "./hund.js":
+/*!*****************!*\
+  !*** ./hund.js ***!
+  \*****************/
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   Hund: () => (/* binding */ Hund)
+/* harmony export */ });
+class Hund {
+
+    constructor() {
+        console.log("dog");
+    }
+
+    bark() {
+        console.log("wuff");
+    }
+}
+
+
+/***/ })
+
+/******/ });
 /************************************************************************/
-/******/ 	/* webpack/runtime/define property getters */
-/******/ 	(() => {
-/******/ 		// define getter functions for harmony exports
-/******/ 		__webpack_require__.d = (exports, definition) => {
-/******/ 			for(var key in definition) {
-/******/ 				if(__webpack_require__.o(definition, key) && !__webpack_require__.o(exports, key)) {
-/******/ 					Object.defineProperty(exports, key, { enumerable: true, get: definition[key] });
-/******/ 				}
+/******/ // The module cache
+/******/ var __webpack_module_cache__ = {};
+/******/ 
+/******/ // The require function
+/******/ function __webpack_require__(moduleId) {
+/******/ 	// Check if module is in cache
+/******/ 	var cachedModule = __webpack_module_cache__[moduleId];
+/******/ 	if (cachedModule !== undefined) {
+/******/ 		return cachedModule.exports;
+/******/ 	}
+/******/ 	// Create a new module (and put it into the cache)
+/******/ 	var module = __webpack_module_cache__[moduleId] = {
+/******/ 		// no module.id needed
+/******/ 		// no module.loaded needed
+/******/ 		exports: {}
+/******/ 	};
+/******/ 
+/******/ 	// Execute the module function
+/******/ 	__webpack_modules__[moduleId](module, module.exports, __webpack_require__);
+/******/ 
+/******/ 	// Return the exports of the module
+/******/ 	return module.exports;
+/******/ }
+/******/ 
+/************************************************************************/
+/******/ /* webpack/runtime/define property getters */
+/******/ (() => {
+/******/ 	// define getter functions for harmony exports
+/******/ 	__webpack_require__.d = (exports, definition) => {
+/******/ 		for(var key in definition) {
+/******/ 			if(__webpack_require__.o(definition, key) && !__webpack_require__.o(exports, key)) {
+/******/ 				Object.defineProperty(exports, key, { enumerable: true, get: definition[key] });
 /******/ 			}
-/******/ 		};
-/******/ 	})();
-/******/ 	
-/******/ 	/* webpack/runtime/hasOwnProperty shorthand */
-/******/ 	(() => {
-/******/ 		__webpack_require__.o = (obj, prop) => (Object.prototype.hasOwnProperty.call(obj, prop))
-/******/ 	})();
-/******/ 	
-/******/ 	/* webpack/runtime/make namespace object */
-/******/ 	(() => {
-/******/ 		// define __esModule on exports
-/******/ 		__webpack_require__.r = (exports) => {
-/******/ 			if(typeof Symbol !== 'undefined' && Symbol.toStringTag) {
-/******/ 				Object.defineProperty(exports, Symbol.toStringTag, { value: 'Module' });
-/******/ 			}
-/******/ 			Object.defineProperty(exports, '__esModule', { value: true });
-/******/ 		};
-/******/ 	})();
-/******/ 	
+/******/ 		}
+/******/ 	};
+/******/ })();
+/******/ 
+/******/ /* webpack/runtime/hasOwnProperty shorthand */
+/******/ (() => {
+/******/ 	__webpack_require__.o = (obj, prop) => (Object.prototype.hasOwnProperty.call(obj, prop))
+/******/ })();
+/******/ 
+/******/ /* webpack/runtime/make namespace object */
+/******/ (() => {
+/******/ 	// define __esModule on exports
+/******/ 	__webpack_require__.r = (exports) => {
+/******/ 		if(typeof Symbol !== 'undefined' && Symbol.toStringTag) {
+/******/ 			Object.defineProperty(exports, Symbol.toStringTag, { value: 'Module' });
+/******/ 		}
+/******/ 		Object.defineProperty(exports, '__esModule', { value: true });
+/******/ 	};
+/******/ })();
+/******/ 
 /************************************************************************/
 var __webpack_exports__ = {};
+// This entry needs to be wrapped in an IIFE because it needs to be isolated against other modules in the chunk.
+(() => {
 /*!******************!*\
   !*** ./index.js ***!
   \******************/
@@ -41,14 +90,15 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   CellMate: () => (/* binding */ CellMate)
 /* harmony export */ });
-
+/* harmony import */ var _hund_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./hund.js */ "./hund.js");
 /**
  * @typedef CellMateOptions
  * @property  {UndoManager} [undo] undo manager
  * @property  {HTMLElement} container element,cellmate will inject itself into this element
  */
- console.log("cellmate 8")
 
+
+console.log("cellmate 8")
 
 let countInst=0
 
@@ -107,6 +157,9 @@ class CellMate
 
 		// this.download("bla.csv",this.toCsv(true))
 		// console.log(this.toCsv())
+
+		const hund = new _hund_js__WEBPACK_IMPORTED_MODULE_0__.Hund();
+		hund.bark();
 	}
 	get absX()
 	{
@@ -119,15 +172,15 @@ class CellMate
 
 	cellId(x,y)
 	{
-		return "cell"+this.countInst+"_"+(x-this.#scrollX)+"_"+(y-this.#scrollY);	
+		return "cell"+this.countInst+"_"+(x-this.#scrollX)+"_"+(y-this.#scrollY);
 	}
 	cellRowHeadId(y)
 	{
-		return "rowHead"+this.countInst+"_"+(y-this.#scrollY);	
+		return "rowHead"+this.countInst+"_"+(y-this.#scrollY);
 	}
 	cellColHeadId(x)
 	{
-		return "colHead"+this.countInst+"_"+(x-this.#scrollX);	
+		return "colHead"+this.countInst+"_"+(x-this.#scrollX);
 	}
 
 	clampCursor()
@@ -235,7 +288,7 @@ class CellMate
 		{
 			this.setEndSelection(this.#dataWidth,Math.max(r,this.#selectionStartY));
 			this.startSelection(0,Math.min(r,this.#selectionStartY))
-	
+
 		}else
 		{
 			this.startSelection(0,r)
@@ -250,7 +303,7 @@ class CellMate
 		{
 			this.setEndSelection(Math.max(col,this.#selectionStartX),this.#dataHeight);
 			this.startSelection(Math.min(col,this.#selectionStartX),0)
-	
+
 		}else
 		{
 			this.startSelection(col,0)
@@ -417,8 +470,8 @@ class CellMate
 	}
 
 redrawDataSoon(){
-	
-		clearTimeout(this.#redrawTimeout) 
+
+		clearTimeout(this.#redrawTimeout)
 		this.#redrawTimeout=setTimeout(()=>
 			{
 				this.redrawData();
@@ -426,7 +479,7 @@ redrawDataSoon(){
 }
 updateScrollBarsSoon()
 	{
-		clearTimeout(this.#scrollTimeOut) 
+		clearTimeout(this.#scrollTimeOut)
 		this.#scrollTimeOut=setTimeout(()=>
 			{
 				this.updateScrollBars();
@@ -535,7 +588,7 @@ updateScrollBarsSoon()
 							that.redrawData()
           }
       });
-			
+
 		}
 	}
 
@@ -576,7 +629,7 @@ updateScrollBarsSoon()
 			if(this.#options.onChange)this.#options.onChange()
 			this.redrawDataArea()
 			this.redrawData()
-			
+
 		}
 	}
 
@@ -600,7 +653,7 @@ updateScrollBarsSoon()
 		this.updateStatus();
 		this.redrawData();
 	}
-	
+
 	toObj()
 	{
 		return{
@@ -609,7 +662,7 @@ updateScrollBarsSoon()
 			"width":this.#dataWidth,
 			"height":this.#dataHeight
 		}
-		
+
 	}
 
 	fromTxt(txt,x,y)
@@ -649,7 +702,7 @@ updateScrollBarsSoon()
 
 					str+=this.getValue(x,y);
 					if(x<this.#dataWidth-1)str+=separator
-					
+
 				}
 				str+="\n"
 			}
@@ -668,8 +721,8 @@ updateScrollBarsSoon()
 	  element.click();
 
 	  document.body.removeChild(element);
-	}		
-	
+	}
+
 	toJson()
 	{
 		const arr=[]
@@ -698,14 +751,14 @@ updateScrollBarsSoon()
 				for(let y=0;y<this.#dataHeight;y++)
 					arr[x][y]=this.getValue(x,y)
 
-				
+
 			return arr;
-		
+
 		}
 		else{
 			return structuredClone(this.#data)
 		}
-		
+
 	}
 
 	toTxt()
@@ -729,7 +782,7 @@ updateScrollBarsSoon()
 
 	redrawDataArea()
 	{
-		
+
 		for(let y=this.#scrollY;y<this.#scrollY+this.#height;y++)
 			for(let x=this.#scrollX;x<this.#width+this.#scrollX;x++)
 			{
@@ -961,7 +1014,7 @@ updateScrollBarsSoon()
 
 				elInput.addEventListener("keydown",(e)=>
 				{
-	
+
 				});
 			}
 		}
@@ -1055,11 +1108,14 @@ updateScrollBarsSoon()
 		this.#elTable=null;
 		this.#data=null;
 	}
-	
+
 }
 
 
 
-/******/ })()
-;
+})();
+
+const __webpack_exports__CellMate = __webpack_exports__.CellMate;
+export { __webpack_exports__CellMate as CellMate };
+
 //# sourceMappingURL=cellmate.js.map

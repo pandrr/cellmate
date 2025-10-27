@@ -1,26 +1,32 @@
-import path from "path" 
-import { dirname } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import path from "path"
 
-const __dirname = dirname(fileURLToPath(import.meta.url));
-
-export default[
-  {
-    // watch:true,
+const sharedConfig = {
+    // watch: true,
     entry: './index.js',
     mode: 'development',
     devtool: 'source-map',
-  
+    experiments: {
+        outputModule: true
+    }
+};
+const moduleConfig = {
+    ...sharedConfig,
     output: {
-      // path: '/Users/tom/cables_dev/cables_ui/libs/ui/',
-      path: path.resolve(__dirname, 'dist'),
-      filename: 'cellmate.js',
-  
-      library: {
-        name: 'CellMate',
-        type: 'module',
-      },
-    },
-  }
-  ,
-  ]
+        libraryTarget: 'module',
+        filename: 'cellmate.js',
+        path: path.resolve("./", 'dist')
+    }
+};
+
+const cjsConfig = {
+    ...sharedConfig,
+    output: {
+        filename: 'cellmate.cjs',
+        path: path.resolve("./", 'dist'),
+        iife: true,
+        library: {
+            type: 'umd',
+        },
+    }
+}
+export default [moduleConfig, cjsConfig]
