@@ -4,7 +4,7 @@
  * @property  {HTMLElement} container element,cellmate will inject itself into this element
  */
 
-console.log("cellmate 8")
+console.log("cellmate 9")
 
 let countInst=0
 
