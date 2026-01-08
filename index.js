@@ -43,7 +43,7 @@ export class CellMate
 	#scrollTimeOut=null;
 	#redrawTimeout=null;
 
-	constructor(container,options)
+	constructor(container,options={})
 	{
 		this.countInst= ++countInst;
 		this.#data.length=this.#dataWidth*this.#dataHeight;
@@ -425,7 +425,12 @@ updateScrollBarsSoon()
 
 	resizeData(w,h)
 	{
-		const newData=[]
+		console.log("this.datawidth",this.#dataWidth,this.#dataHeight  )
+		console.log((new Error()).stack)
+		h=Math.max(1,h);
+		w=Math.max(1,w);
+
+		const newData=[];
 		for(let x=0;x<w;x++)
 		{
 			for(let y=0;y<h;y++)
@@ -496,6 +501,8 @@ updateScrollBarsSoon()
 
 	lastRowEmpty()
 	{
+		if(this.#dataHeight<=1)return;
+
 			const y=this.#dataHeight-1;
 			for(let i=0;i<this.#dataWidth;i++)
 				if(this.#data[i+y*this.#dataWidth]) return false
@@ -504,6 +511,7 @@ updateScrollBarsSoon()
 	}
 	lastColEmpty()
 	{
+		if(this.#dataWidth<=1)return;
 			const x=this.#dataWidth-1;
 			for(let i=0;i<this.#dataHeight;i++)
 				if(this.#data[x+i*this.#dataWidth]) return false
@@ -885,7 +893,7 @@ updateScrollBarsSoon()
 
 				elInput.addEventListener("input",(e)=>
 				{
-				  if (this.#options.undo&& (e.ctrlKey || e.metaKey) && e.key === "z")
+				  if (this.#options&&this.#options.undo&& (e.ctrlKey || e.metaKey) && e.key === "z")
 				  {
 				  	e.preventDefault()
 				  	elInput.blur()
