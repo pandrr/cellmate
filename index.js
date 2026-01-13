@@ -118,6 +118,18 @@ export class CellMate
 	unFocusInput()
 	{
 		if(!this.#elActiveInput)return;
+
+
+
+let v=this.#elActiveInput.value
+if(this.isNumeric(v)){
+	v=parseFloat(v);
+	let x=parseInt(this.#elActiveInput.dataset.x)+this.#scrollX;
+	let y=parseInt(this.#elActiveInput.dataset.y)+this.#scrollY;
+	this.setValue(x,y,v)
+}
+
+		
 		this.#elActiveInput.blur();
 		this.getCursorEl().setAttribute("readonly",true)
 		this.#elActiveInput=null;
@@ -417,6 +429,7 @@ updateScrollBarsSoon()
 			for(let i=0;i<rows.length;i++)
 			{
 				rows[i].style["grid-template-columns"]="repeat("+(this.#width+1)+","+this.#cellWidth+"px)"
+				// rows[i].style["grid-template-columns"]="repeat(auto-fill, minmax(90px, 1fr))"
 				// console.log("repeat("+this.#width+","+this.cellWidth+"px)");
 			}
 		}
@@ -426,7 +439,7 @@ updateScrollBarsSoon()
 	resizeData(w,h)
 	{
 		console.log("this.datawidth",this.#dataWidth,this.#dataHeight  )
-		console.log((new Error()).stack)
+		// console.log((new Error()).stack)
 		h=Math.max(1,h);
 		w=Math.max(1,w);
 
@@ -467,7 +480,6 @@ updateScrollBarsSoon()
 		while(idx>this.#data.length)
 			for(let i=0;i<this.#width;i++) this.#data.push("");
 
-		if(this.isNumeric(v))v=parseFloat(v);
 		this.#data[idx]=v;
 
 		const inputEle=document.getElementById(this.cellId(x,y))
@@ -539,10 +551,8 @@ updateScrollBarsSoon()
 			if(this.#options.onChange)this.#options.onChange()
 			this.redrawDataArea()
 			this.redrawData()
-
 		}
 	}
-
 
 	fromObj(o)
 	{
@@ -893,7 +903,7 @@ updateScrollBarsSoon()
 
 				elInput.addEventListener("input",(e)=>
 				{
-				  if (this.#options&&this.#options.undo&& (e.ctrlKey || e.metaKey) && e.key === "z")
+				  if (this.#options && this.#options.undo && (e.ctrlKey || e.metaKey) && e.key === "z")
 				  {
 				  	e.preventDefault()
 				  	elInput.blur()
@@ -902,7 +912,7 @@ updateScrollBarsSoon()
 				  }
 				  else
 				  {
-	 					this.setValue(this.absX,this.absY,e.srcElement.value)
+	 					this.setValue(this.absX,this.absY,e.srcElement.value);
 				  }
 				});
 
@@ -999,13 +1009,13 @@ updateScrollBarsSoon()
 			else if(!this.#elActiveInput &&  e.key=="PageUp") this.moveY(-this.#height);
 			else if(!this.#elActiveInput &&  e.key=="PageDown") this.moveY(this.#height);
 			else
-				if(e.code && (e.code.startsWith("Digit") || e.code.startsWith("Key") ))
+				if(e.code &&e.key)// (e.code.startsWith("Digit") || e.code.startsWith("Key")||e.code=="Minus" ))
 				{
 					if(!this.#elActiveInput) this.focusCell(this.cursorScreenX,this.cursorScreenY);
 				}
 				else
 				{
-					console.log(e);
+					console.log(e.code,e);
 				}
 
 		});
